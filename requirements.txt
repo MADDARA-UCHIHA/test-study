@@ -3,3 +3,5 @@ flask-wtf
 werkzeug
 feedparser
 requests
+BeautifulSoup
+bs4
