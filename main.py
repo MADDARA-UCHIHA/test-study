@@ -1,7 +1,9 @@
 import os
 import sqlite3
 import feedparser
+import requests
 
+from bs4 import BeautifulSoup
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -57,8 +59,10 @@ body{
 # ================== SECURITY (AUTH SAFE) ==================
 @app.before_request
 def run_security():
-    # auth va static route’lar o‘tkaziladi
-    if request.endpoint in ("login", "signup", "terms", "accept_terms", "static"):
+    if request.endpoint in (
+        "login", "signup", "terms",
+        "accept_terms", "static"
+    ):
         return
 
     if security_check():
@@ -99,6 +103,7 @@ def shop():
 def terms():
     return render_template("terms.html")
 
+@csrf.exempt
 @app.route("/accept-terms", methods=["POST"])
 @login_required
 def accept_terms():
@@ -173,7 +178,7 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# ---------- API FEED ----------
+# ---------- API FEED (IMAGES ENABLED) ----------
 @app.route("/api/feed")
 @login_required
 @terms_required
@@ -189,18 +194,40 @@ def api_feed():
         ("BBC Technology", "https://feeds.bbci.co.uk/news/technology/rss.xml"),
     ]
 
-    for source, url in FEEDS:
-        feed = feedparser.parse(url)
+    def get_image_from_page(url):
+        try:
+            r = requests.get(
+                url,
+                timeout=5,
+                headers={"User-Agent": "Mozilla/5.0"}
+            )
+            soup = BeautifulSoup(r.text, "html.parser")
+            og = soup.find("meta", property="og:image")
+            return og["content"] if og else ""
+        except:
+            return ""
+
+    for source, feed_url in FEEDS:
+        feed = feedparser.parse(feed_url)
         for e in feed.entries:
             link = getattr(e, "link", "")
             if not link or link in seen:
                 continue
 
             seen.add(link)
+
+            image = ""
+            if hasattr(e, "media_thumbnail"):
+                image = e.media_thumbnail[0].get("url", "")
+
+            if not image:
+                image = get_image_from_page(link)
+
             items.append({
                 "source": source,
                 "title": getattr(e, "title", ""),
-                "link": link
+                "link": link,
+                "image": image
             })
 
             if len(items) >= limit:
