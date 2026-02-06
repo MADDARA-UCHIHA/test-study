@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import feedparser
-from flask_wtf.csrf import CSRFError
+
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -9,17 +9,28 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import CSRFProtect
+from flask_wtf.csrf import exempt
 
 from security import security_check
 
 # ================== APP ==================
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "Ryuzen_Titan_Secret_2026")
+
+# CSRF global (lekin login/signup exempt qilinadi)
 csrf = CSRFProtect(app)
 
-# ================== DB ==================
+# ================== DB (AUTO CREATE) ==================
 def get_db():
-    return sqlite3.connect("wallpaper.db")
+    db = sqlite3.connect("wallpaper.db")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT
+        )
+    """)
+    return db
 
 # ================== EMERGENCY PAGE ==================
 EMERGENCY_HTML = """
@@ -33,6 +44,7 @@ body{
  display:flex;justify-content:center;
  align-items:center;height:100vh;
  font-family:monospace;
+ text-align:center;
 }
 </style>
 </head>
@@ -48,7 +60,7 @@ def run_security():
     if security_check():
         return render_template_string(EMERGENCY_HTML), 503
 
-# ================== LOGIN REQUIRED ==================
+# ================== DECORATORS ==================
 def login_required(fn):
     def wrapper(*args, **kwargs):
         if "user" not in session:
@@ -57,7 +69,6 @@ def login_required(fn):
     wrapper.__name__ = fn.__name__
     return wrapper
 
-# ================== TERMS CHECK ==================
 def terms_required(fn):
     def wrapper(*args, **kwargs):
         if not session.get("terms"):
@@ -91,16 +102,22 @@ def accept_terms():
 
 # ================== SIGNUP ==================
 @app.route("/signup", methods=["GET", "POST"])
+@exempt
 def signup():
     if request.method == "POST":
-        username = request.form["username"]
-        password = generate_password_hash(request.form["password"])
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not username or not password:
+            return "Missing fields", 400
+
+        hashed = generate_password_hash(password)
 
         try:
             db = get_db()
             db.execute(
-                "INSERT INTO users(username, password) VALUES (?, ?)",
-                (username, password)
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (username, hashed)
             )
             db.commit()
             db.close()
@@ -112,10 +129,11 @@ def signup():
 
 # ================== LOGIN ==================
 @app.route("/login", methods=["GET", "POST"])
+@exempt
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         db = get_db()
         row = db.execute(
@@ -130,7 +148,7 @@ def login():
             session["terms"] = False
             return redirect("/")
 
-        return "Login failed", 401
+        return "Invalid credentials", 401
 
     return render_template("login.html")
 
@@ -184,9 +202,3 @@ def api_feed():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
-
-
-@app.errorhandler(CSRFError)
-def handle_csrf_error(e):
-    return render_template("csrf_error.html"), 400
-
