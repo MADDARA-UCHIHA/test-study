@@ -12,7 +12,11 @@
 <body>
 
 <nav class="navbar">
-  <h1 class="logo">DARKLINE●NEWS</h1>
+<div class="logo-box">
+  <img src="{{ url_for('static', filename='logo.svg') }}" alt="DARKLINE-NEWS logo">
+  <span>DARKLINE●NEWS</span>
+</div>
+
 
   <div>
     <button class="shop-btn" onclick="location.href='/shop'">🛒 Shop</button>
@@ -28,3 +32,4 @@
 <script src="{{ url_for('static', filename='news.js') }}"></script>
 </body>
 </html>
+
