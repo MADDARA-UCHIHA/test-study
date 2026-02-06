@@ -2,7 +2,7 @@ import os
 import sqlite3
 import feedparser
 import requests
-
+from security import register_login_failure
 from bs4 import BeautifulSoup
 from flask import (
     Flask, render_template, request,
@@ -169,7 +169,10 @@ def login():
                 session["terms"] = False
                 return redirect("/")
 
-            return "Invalid email or password", 401
+            
+register_login_failure(request.remote_addr)
+return "Invalid email or password", 401
+
 
         except Exception as e:
             print("LOGIN ERROR:", e)
@@ -249,3 +252,4 @@ def api_feed():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
