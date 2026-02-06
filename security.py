@@ -4,21 +4,20 @@ from collections import defaultdict, deque
 from flask import request, abort
 
 # ================= CONFIG =================
-RATE_LIMIT = 60            # 1 IP → 60 so‘rov
-RATE_WINDOW = 60           # 60 sekund ichida
+RATE_LIMIT = 60            # 1 IP → 60 request
+RATE_WINDOW = 60           # 60 sekund
 
 LOGIN_ATTEMPTS = 5         # 5 marta xato login
 LOGIN_WINDOW = 300         # 5 minut
 BLOCK_TIME = 900           # 15 minut blok
 
-GLOBAL_LIMIT = 500         # umumiy traffic
+GLOBAL_LIMIT = 500         # umumiy trafik
 GLOBAL_WINDOW = 60
 
 # ================= STATE =================
 ip_requests = defaultdict(deque)
 login_failures = defaultdict(deque)
 blocked_ips = {}
-
 global_requests = deque()
 
 # ================= HELPERS =================
@@ -29,14 +28,13 @@ def cleanup(queue, window):
     while queue and now() - queue[0] > window:
         queue.popleft()
 
-# -------- LOGIN BRUTE FORCE --------
-if request.endpoint == "login" and request.method == "POST":
-    cleanup(login_failures[ip], LOGIN_WINDOW)
-
-    if len(login_failures[ip]) >= LOGIN_ATTEMPTS:
-        blocked_ips[ip] = t + BLOCK_TIME
-        abort(403)
-
+# ================= CORE =================
+def security_check():
+    ip = request.headers.get(
+        "X-Forwarded-For",
+        request.remote_addr
+    )
+    t = now()
 
     # -------- BLOCKED IP --------
     if ip in blocked_ips:
@@ -50,8 +48,7 @@ if request.endpoint == "login" and request.method == "POST":
     global_requests.append(t)
 
     if len(global_requests) > GLOBAL_LIMIT:
-        # emergency trigger
-        return True
+        return True  # emergency ON
 
     # -------- IP RATE LIMIT --------
     cleanup(ip_requests[ip], RATE_WINDOW)
@@ -68,20 +65,20 @@ if request.endpoint == "login" and request.method == "POST":
             blocked_ips[ip] = t + BLOCK_TIME
             abort(403)
 
-    # -------- INPUT SANITY --------
+    # -------- INPUT FILTER --------
     if request.method == "POST":
-        for key, value in request.form.items():
+        for _, value in request.form.items():
             if not is_safe(value):
                 abort(403)
 
-    return False  # emergency off
+    return False  # emergency OFF
 
-# ================= LOGIN FAIL REGISTER =================
+# ================= REGISTER LOGIN FAIL =================
 def register_login_failure(ip):
     cleanup(login_failures[ip], LOGIN_WINDOW)
     login_failures[ip].append(now())
 
-# ================= INPUT FILTER =================
+# ================= INPUT SANITY =================
 def is_safe(data):
     if not data:
         return True
@@ -105,4 +102,3 @@ def is_safe(data):
             return False
 
     return True
-
