@@ -57,8 +57,8 @@ body{
 # ================== SECURITY (AUTH SAFE) ==================
 @app.before_request
 def run_security():
-    # AUTH va STATIC route’larni tekshirmaymiz
-    if request.endpoint in ("login", "signup", "static"):
+    # auth va static route’lar o‘tkaziladi
+    if request.endpoint in ("login", "signup", "terms", "accept_terms", "static"):
         return
 
     if security_check():
@@ -93,6 +93,7 @@ def home():
 def shop():
     return render_template("shop.html")
 
+# ---------- TERMS ----------
 @app.route("/terms")
 @login_required
 def terms():
@@ -104,7 +105,7 @@ def accept_terms():
     session["terms"] = True
     return redirect("/")
 
-# ================== SIGNUP ==================
+# ---------- SIGNUP ----------
 @csrf.exempt
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -132,11 +133,11 @@ def signup():
             return "Username already exists", 409
         except Exception as e:
             print("SIGNUP ERROR:", e)
-            return f"Signup error: {e}", 500
+            return "Signup failed", 500
 
     return render_template("signup.html")
 
-# ================== LOGIN ==================
+# ---------- LOGIN ----------
 @csrf.exempt
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -162,17 +163,17 @@ def login():
 
         except Exception as e:
             print("LOGIN ERROR:", e)
-            return f"Login error: {e}", 500
+            return "Login failed", 500
 
     return render_template("login.html")
 
-# ================== LOGOUT ==================
+# ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# ================== API FEED ==================
+# ---------- API FEED ----------
 @app.route("/api/feed")
 @login_required
 @terms_required
