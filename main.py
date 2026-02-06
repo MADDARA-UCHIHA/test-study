@@ -18,9 +18,11 @@ app.secret_key = os.environ.get("SECRET_KEY", "Ryuzen_Titan_Secret_2026")
 
 csrf = CSRFProtect(app)
 
-# ================== DB (AUTO CREATE) ==================
+# ================== DB (RAILWAY SAFE) ==================
+DB_PATH = "/tmp/wallpaper.db"
+
 def get_db():
-    db = sqlite3.connect("wallpaper.db")
+    db = sqlite3.connect(DB_PATH)
     db.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,9 +54,13 @@ body{
 </html>
 """
 
-# ================== SECURITY ==================
+# ================== SECURITY (AUTH SAFE) ==================
 @app.before_request
 def run_security():
+    # AUTH va STATIC route’larni tekshirmaymiz
+    if request.endpoint in ("login", "signup", "static"):
+        return
+
     if security_check():
         return render_template_string(EMERGENCY_HTML), 503
 
@@ -103,15 +109,15 @@ def accept_terms():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-
-        if not username or not password:
-            return "Missing fields", 400
-
-        hashed = generate_password_hash(password)
-
         try:
+            username = request.form.get("username")
+            password = request.form.get("password")
+
+            if not username or not password:
+                return "Missing fields", 400
+
+            hashed = generate_password_hash(password)
+
             db = get_db()
             db.execute(
                 "INSERT INTO users (username, password) VALUES (?, ?)",
@@ -119,9 +125,14 @@ def signup():
             )
             db.commit()
             db.close()
+
             return redirect(url_for("login"))
+
         except sqlite3.IntegrityError:
             return "Username already exists", 409
+        except Exception as e:
+            print("SIGNUP ERROR:", e)
+            return f"Signup error: {e}", 500
 
     return render_template("signup.html")
 
@@ -130,23 +141,28 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+        try:
+            username = request.form.get("username")
+            password = request.form.get("password")
 
-        db = get_db()
-        row = db.execute(
-            "SELECT password FROM users WHERE username = ?",
-            (username,)
-        ).fetchone()
-        db.close()
+            db = get_db()
+            row = db.execute(
+                "SELECT password FROM users WHERE username = ?",
+                (username,)
+            ).fetchone()
+            db.close()
 
-        if row and check_password_hash(row[0], password):
-            session.clear()
-            session["user"] = username
-            session["terms"] = False
-            return redirect("/")
+            if row and check_password_hash(row[0], password):
+                session.clear()
+                session["user"] = username
+                session["terms"] = False
+                return redirect("/")
 
-        return "Invalid credentials", 401
+            return "Invalid credentials", 401
+
+        except Exception as e:
+            print("LOGIN ERROR:", e)
+            return f"Login error: {e}", 500
 
     return render_template("login.html")
 
