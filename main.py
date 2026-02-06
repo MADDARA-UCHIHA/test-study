@@ -9,7 +9,6 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import CSRFProtect
-from flask_wtf.csrf import exempt
 
 from security import security_check
 
@@ -17,7 +16,6 @@ from security import security_check
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "Ryuzen_Titan_Secret_2026")
 
-# CSRF global (lekin login/signup exempt qilinadi)
 csrf = CSRFProtect(app)
 
 # ================== DB (AUTO CREATE) ==================
@@ -101,8 +99,8 @@ def accept_terms():
     return redirect("/")
 
 # ================== SIGNUP ==================
+@csrf.exempt
 @app.route("/signup", methods=["GET", "POST"])
-@exempt
 def signup():
     if request.method == "POST":
         username = request.form.get("username")
@@ -128,8 +126,8 @@ def signup():
     return render_template("signup.html")
 
 # ================== LOGIN ==================
+@csrf.exempt
 @app.route("/login", methods=["GET", "POST"])
-@exempt
 def login():
     if request.method == "POST":
         username = request.form.get("username")
