@@ -2,7 +2,7 @@ import os
 import sqlite3
 import feedparser
 import requests
-from security import register_login_failure
+
 from bs4 import BeautifulSoup
 from flask import (
     Flask, render_template, request,
@@ -12,15 +12,14 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import CSRFProtect
 
-from security import security_check
+from security import security_check, register_login_failure
 
-# ================== APP ==================
+# ================= APP =================
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "Ryuzen_Titan_Secret_2026")
-
 csrf = CSRFProtect(app)
 
-# ================== DB (RAILWAY SAFE) ==================
+# ================= DB =================
 DB_PATH = "/tmp/wallpaper.db"
 
 def get_db():
@@ -34,29 +33,19 @@ def get_db():
     """)
     return db
 
-# ================== EMERGENCY PAGE ==================
+# ================= EMERGENCY =================
 EMERGENCY_HTML = """
 <!DOCTYPE html>
 <html>
-<head>
-<title>SYSTEM CRITICAL</title>
-<style>
-body{
- background:black;color:red;
- display:flex;justify-content:center;
- align-items:center;height:100vh;
- font-family:monospace;
- text-align:center;
-}
-</style>
-</head>
-<body>
+<body style="background:black;color:red;
+display:flex;align-items:center;justify-content:center;
+height:100vh;font-family:monospace;">
 <h1>⚠️ EMERGENCY MODE<br>SYSTEM SECURED BY RYUZEN TITAN</h1>
 </body>
 </html>
 """
 
-# ================== SECURITY ==================
+# ================= SECURITY =================
 @app.before_request
 def run_security():
     if request.endpoint in (
@@ -68,25 +57,24 @@ def run_security():
     if security_check():
         return render_template_string(EMERGENCY_HTML), 503
 
-# ================== DECORATORS ==================
+# ================= DECORATORS =================
 def login_required(fn):
-    def wrapper(*args, **kwargs):
+    def wrapper(*a, **kw):
         if "user" not in session:
-            return redirect(url_for("login"))
-        return fn(*args, **kwargs)
+            return redirect("/login")
+        return fn(*a, **kw)
     wrapper.__name__ = fn.__name__
     return wrapper
 
 def terms_required(fn):
-    def wrapper(*args, **kwargs):
+    def wrapper(*a, **kw):
         if not session.get("terms"):
-            return redirect(url_for("terms"))
-        return fn(*args, **kwargs)
+            return redirect("/terms")
+        return fn(*a, **kw)
     wrapper.__name__ = fn.__name__
     return wrapper
 
-# ================== ROUTES ==================
-
+# ================= ROUTES =================
 @app.route("/")
 @login_required
 @terms_required
@@ -110,20 +98,20 @@ def accept_terms():
     session["terms"] = True
     return redirect("/")
 
-# ---------- SIGNUP (AUTO LOGIN) ----------
+# ---------- SIGNUP ----------
 @csrf.exempt
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        if not email or not password:
+            return "Missing fields", 400
+
+        hashed = generate_password_hash(password)
+
         try:
-            email = request.form.get("email")
-            password = request.form.get("password")
-
-            if not email or not password:
-                return "Missing fields", 400
-
-            hashed = generate_password_hash(password)
-
             db = get_db()
             db.execute(
                 "INSERT INTO users (email, password) VALUES (?, ?)",
@@ -131,19 +119,14 @@ def signup():
             )
             db.commit()
             db.close()
-
-            # 🔥 AUTO LOGIN
-            session.clear()
-            session["user"] = email
-            session["terms"] = False
-
-            return redirect("/")
-
         except sqlite3.IntegrityError:
             return "Email already registered", 409
-        except Exception as e:
-            print("SIGNUP ERROR:", e)
-            return "Signup failed", 500
+
+        # AUTO LOGIN
+        session.clear()
+        session["user"] = email
+        session["terms"] = False
+        return redirect("/")
 
     return render_template("signup.html")
 
@@ -152,31 +135,27 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        try:
-            email = request.form.get("email")
-            password = request.form.get("password")
+        email = request.form.get("email")
+        password = request.form.get("password")
 
-            db = get_db()
-            row = db.execute(
-                "SELECT password FROM users WHERE email = ?",
-                (email,)
-            ).fetchone()
-            db.close()
+        db = get_db()
+        row = db.execute(
+            "SELECT password FROM users WHERE email = ?",
+            (email,)
+        ).fetchone()
+        db.close()
 
-            if row and check_password_hash(row[0], password):
-                session.clear()
-                session["user"] = email
-                session["terms"] = False
-                return redirect("/")
+        if row and check_password_hash(row[0], password):
+            session.clear()
+            session["user"] = email
+            session["terms"] = False
+            return redirect("/")
 
-            
-register_login_failure(request.remote_addr)
-return "Invalid email or password", 401
-
-
-        except Exception as e:
-            print("LOGIN ERROR:", e)
-            return "Login failed", 500
+        # ❗ LOGIN XATO — BRUTE FORCE HISOBLANADI
+        register_login_failure(
+            request.headers.get("X-Forwarded-For", request.remote_addr)
+        )
+        return "Invalid email or password", 401
 
     return render_template("login.html")
 
@@ -184,31 +163,27 @@ return "Invalid email or password", 401
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect("/login")
 
-# ---------- API FEED (WITH IMAGES) ----------
+# ---------- NEWS API ----------
 @app.route("/api/feed")
 @login_required
 @terms_required
 def api_feed():
     limit = int(request.args.get("limit", 20))
-    items = []
-    seen = set()
+    items, seen = [], set()
 
     FEEDS = [
         ("BBC", "https://feeds.bbci.co.uk/news/rss.xml"),
         ("BBC World", "https://feeds.bbci.co.uk/news/world/rss.xml"),
         ("BBC Business", "https://feeds.bbci.co.uk/news/business/rss.xml"),
-        ("BBC Technology", "https://feeds.bbci.co.uk/news/technology/rss.xml"),
+        ("BBC Tech", "https://feeds.bbci.co.uk/news/technology/rss.xml"),
     ]
 
-    def get_image_from_page(url):
+    def get_image(url):
         try:
-            r = requests.get(
-                url,
-                timeout=5,
-                headers={"User-Agent": "Mozilla/5.0"}
-            )
+            r = requests.get(url, timeout=5,
+                             headers={"User-Agent": "Mozilla/5.0"})
             soup = BeautifulSoup(r.text, "html.parser")
             og = soup.find("meta", property="og:image")
             return og["content"] if og else ""
@@ -221,35 +196,28 @@ def api_feed():
             link = getattr(e, "link", "")
             if not link or link in seen:
                 continue
-
             seen.add(link)
 
-            image = ""
+            img = ""
             if hasattr(e, "media_thumbnail"):
-                image = e.media_thumbnail[0].get("url", "")
-
-            if not image:
-                image = get_image_from_page(link)
+                img = e.media_thumbnail[0].get("url", "")
+            if not img:
+                img = get_image(link)
 
             items.append({
                 "source": source,
                 "title": getattr(e, "title", ""),
                 "link": link,
-                "image": image
+                "image": img
             })
-
             if len(items) >= limit:
                 break
         if len(items) >= limit:
             break
 
-    return jsonify({
-        "count": len(items),
-        "articles": items
-    })
+    return jsonify({"count": len(items), "articles": items})
 
-# ================== RUN ==================
+# ================= RUN =================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
-
