@@ -48,11 +48,11 @@ height:100vh;font-family:monospace;">
 # ================= SECURITY =================
 @app.before_request
 def run_security():
-    if request.endpoint in (
-        "login", "signup", "terms",
-        "accept_terms", "static"
-    ):
-        return
+  if request.endpoint in (
+    "signup", "terms",
+    "accept_terms", "static"
+):
+    return
 
     if security_check():
         return render_template_string(EMERGENCY_HTML), 503
@@ -221,3 +221,4 @@ def api_feed():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
