@@ -29,10 +29,14 @@ def cleanup(queue, window):
     while queue and now() - queue[0] > window:
         queue.popleft()
 
-# ================= CORE =================
-def security_check():
-    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
-    t = now()
+# -------- LOGIN BRUTE FORCE --------
+if request.endpoint == "login" and request.method == "POST":
+    cleanup(login_failures[ip], LOGIN_WINDOW)
+
+    if len(login_failures[ip]) >= LOGIN_ATTEMPTS:
+        blocked_ips[ip] = t + BLOCK_TIME
+        abort(403)
+
 
     # -------- BLOCKED IP --------
     if ip in blocked_ips:
@@ -101,3 +105,4 @@ def is_safe(data):
             return False
 
     return True
+
