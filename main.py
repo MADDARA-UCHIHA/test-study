@@ -80,6 +80,9 @@ def login():
             return redirect("/")
         return "Login failed", 401
     return render_template("login.html")
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
 
 @app.route("/logout")
 def logout():
@@ -98,3 +101,4 @@ def api_feed():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
