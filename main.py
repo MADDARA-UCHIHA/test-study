@@ -1,6 +1,5 @@
 import feedparser
 import requests
-from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, session, render_template_string
 import security # security.py dan mantiqni olamiz
 from flask_wtf import CSRFProtect
@@ -162,3 +161,4 @@ def login():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 3000))
     app.run(host="0.0.0.0", port=port)
+
