@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import feedparser
-
+from flask_wtf.csrf import CSRFError
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -184,3 +184,9 @@ def api_feed():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    return render_template("csrf_error.html"), 400
+
