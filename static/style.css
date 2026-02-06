@@ -95,3 +95,19 @@ img{
   max-width: 100%;
   display: block;
 }
+.logo-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-box img {
+  width: 42px;
+  height: 42px;
+}
+
+.logo-box span {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
