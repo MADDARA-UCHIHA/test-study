@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up</title>
+</head>
+<body>
+  <h2>Create account</h2>
+  <form method="POST">
+    {{ csrf_token() }}
+    <input name="username" placeholder="Username" required><br>
+    <input name="password" type="password" placeholder="Password" required><br>
+    <button type="submit">Sign up</button>
+  </form>
+</body>
+</html>

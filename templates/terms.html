@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DARKLINE — Terms of Use</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background:#0f0f0f;
+      color:#eaeaea;
+      font-family: Arial, sans-serif;
+      padding:20px;
+    }
+    .box {
+      max-width:800px;
+      margin:auto;
+      border:1px solid #333;
+      padding:20px;
+    }
+    h1 { margin-bottom:10px }
+    ul { line-height:1.6 }
+    button {
+      margin-top:20px;
+      padding:10px 20px;
+      background:#4da3ff;
+      border:none;
+      cursor:pointer;
+      font-size:16px;
+    }
+    button:disabled {
+      background:#555;
+      cursor:not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h1>Terms of Use</h1>
+
+  <ul>
+    <li>Use this platform only for lawful and ethical purposes.</li>
+
+    <li>We do NOT promote violence, harassment, or provocation.</li>
+
+    <li>All information is provided for informational purposes only.</li>
+
+    <li>You are fully responsible for how you use the content.</li>
+
+    <li>We are NOT responsible for any real-world actions or consequences.</li>
+  </ul>
+
+  <label>
+    <input type="checkbox" id="agree">
+    I have read and agree to the Terms of Use
+  </label>
+
+  <br>
+
+  <button id="continue" disabled>Continue</button>
+</div>
+
+<script>
+  const agree = document.getElementById("agree");
+  const btn = document.getElementById("continue");
+
+  agree.addEventListener("change", () => {
+    btn.disabled = !agree.checked;
+  });
+
+  btn.addEventListener("click", () => {
+    localStorage.setItem("termsAccepted", "yes");
+    window.location.href = "/";
+  });
+</script>
+
+</body>
+</html>
