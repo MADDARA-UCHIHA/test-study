@@ -12,6 +12,7 @@ async function loadNews() {
     data.articles.forEach(a => {
       const card = document.createElement("div");
       card.className = "card";
+localStorage.setItem("termsAccepted", "yes");
 
       let imgHtml = "";
       if (a.image) {
@@ -32,5 +33,6 @@ async function loadNews() {
     statusEl.textContent = "Failed to load news";
   }
 }
+
 
 loadNews();
