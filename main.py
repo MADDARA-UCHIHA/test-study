@@ -110,7 +110,7 @@ def accept_terms():
     session["terms"] = True
     return redirect("/")
 
-# ---------- SIGNUP ----------
+# ---------- SIGNUP (AUTO LOGIN) ----------
 @csrf.exempt
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -132,7 +132,12 @@ def signup():
             db.commit()
             db.close()
 
-            return redirect(url_for("login"))
+            # 🔥 AUTO LOGIN
+            session.clear()
+            session["user"] = email
+            session["terms"] = False
+
+            return redirect("/")
 
         except sqlite3.IntegrityError:
             return "Email already registered", 409
