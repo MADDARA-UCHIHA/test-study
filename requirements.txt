@@ -2,3 +2,4 @@ flask
 flask-wtf
 werkzeug
 feedparser
+requests
