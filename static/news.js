@@ -1,5 +1,10 @@
 const grid = document.getElementById("grid");
 const statusEl = document.getElementById("status");
+if (a.image) {
+  img.src = a.image;
+} else {
+  img.src = "/static/no-image.png";
+}
 
 async function loadNews() {
   try {
@@ -36,3 +41,4 @@ localStorage.setItem("termsAccepted", "yes");
 
 
 loadNews();
+
