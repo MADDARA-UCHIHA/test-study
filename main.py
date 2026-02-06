@@ -28,8 +28,8 @@ def get_db():
     db.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password TEXT
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
         )
     """)
     return db
@@ -56,7 +56,7 @@ body{
 </html>
 """
 
-# ================== SECURITY (AUTH SAFE) ==================
+# ================== SECURITY ==================
 @app.before_request
 def run_security():
     if request.endpoint in (
@@ -116,18 +116,18 @@ def accept_terms():
 def signup():
     if request.method == "POST":
         try:
-            username = request.form.get("username")
+            email = request.form.get("email")
             password = request.form.get("password")
 
-            if not username or not password:
+            if not email or not password:
                 return "Missing fields", 400
 
             hashed = generate_password_hash(password)
 
             db = get_db()
             db.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, hashed)
+                "INSERT INTO users (email, password) VALUES (?, ?)",
+                (email, hashed)
             )
             db.commit()
             db.close()
@@ -135,7 +135,7 @@ def signup():
             return redirect(url_for("login"))
 
         except sqlite3.IntegrityError:
-            return "Username already exists", 409
+            return "Email already registered", 409
         except Exception as e:
             print("SIGNUP ERROR:", e)
             return "Signup failed", 500
@@ -148,23 +148,23 @@ def signup():
 def login():
     if request.method == "POST":
         try:
-            username = request.form.get("username")
+            email = request.form.get("email")
             password = request.form.get("password")
 
             db = get_db()
             row = db.execute(
-                "SELECT password FROM users WHERE username = ?",
-                (username,)
+                "SELECT password FROM users WHERE email = ?",
+                (email,)
             ).fetchone()
             db.close()
 
             if row and check_password_hash(row[0], password):
                 session.clear()
-                session["user"] = username
+                session["user"] = email
                 session["terms"] = False
                 return redirect("/")
 
-            return "Invalid credentials", 401
+            return "Invalid email or password", 401
 
         except Exception as e:
             print("LOGIN ERROR:", e)
@@ -178,7 +178,7 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# ---------- API FEED (IMAGES ENABLED) ----------
+# ---------- API FEED (WITH IMAGES) ----------
 @app.route("/api/feed")
 @login_required
 @terms_required
