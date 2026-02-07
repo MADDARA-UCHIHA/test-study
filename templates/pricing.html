@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Premium Plans</title>
+  <style>
+    :root{
+      --bg:#0b0f1a;
+      --card:#0f172a;
+      --card2:#0b1224;
+      --txt:#e5e7eb;
+      --muted:#94a3b8;
+      --line:#22304a;
+      --brand:#3b82f6;
+      --brand2:#22c55e;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 600px at 30% -10%, #1d3b8a33, transparent),
+                  radial-gradient(1000px 600px at 90% 0%, #22c55e22, transparent),
+                  var(--bg);
+      color:var(--txt);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:48px 16px}
+    .top{
+      display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
+      margin-bottom:22px;
+    }
+    h1{font-size:34px; margin:0 0 6px}
+    .sub{color:var(--muted); margin:0; max-width:760px; line-height:1.5}
+    .toggle{
+      display:flex; align-items:center; gap:10px; padding:10px; border:1px solid var(--line);
+      border-radius:14px; background: #0a1226aa; backdrop-filter: blur(6px);
+      user-select:none;
+    }
+    .pill{
+      padding:8px 12px; border-radius:999px; cursor:pointer; font-weight:600; font-size:14px;
+      color:var(--muted);
+    }
+    .pill.active{background: var(--brand); color:white}
+    .save{font-size:12px; color:#a7f3d0; font-weight:700}
+    .grid{
+      display:grid; gap:16px;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+    }
+    @media (max-width: 980px){ .grid{grid-template-columns: repeat(2, minmax(0,1fr));} }
+    @media (max-width: 560px){ .grid{grid-template-columns: 1fr;} }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background: linear-gradient(180deg, #0f172a, #0b1224);
+      padding:18px;
+      position:relative;
+      overflow:hidden;
+      min-height: 520px;
+      display:flex;
+      flex-direction:column;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 300px at 50% 0%, #3b82f633, transparent 60%);
+      opacity:.5; pointer-events:none;
+    }
+    .badge{
+      position:absolute; top:14px; right:14px;
+      background:#1f2a44; border:1px solid var(--line);
+      color:#cbd5e1; padding:6px 10px; border-radius:999px;
+      font-size:12px; font-weight:700;
+    }
+    .name{font-size:18px; font-weight:800; margin:6px 0 2px}
+    .desc{color:var(--muted); margin:0 0 14px; font-size:13px; line-height:1.45}
+    .priceRow{display:flex; align-items:baseline; gap:8px; margin:6px 0 2px}
+    .price{font-size:34px; font-weight:900; letter-spacing:-.5px}
+    .per{color:var(--muted); font-weight:700}
+    .strike{color:#64748b; text-decoration:line-through; font-weight:700}
+    .btn{
+      margin-top:12px;
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0a1226;
+      color:white; font-weight:800;
+      text-decoration:none;
+      transition:.15s transform, .15s background;
+    }
+    .btn:hover{transform: translateY(-1px); background:#0b1a3a}
+    .btn.primary{background: var(--brand); border-color: transparent;}
+    .btn.primary:hover{background:#2563eb}
+    .btn.ultimate{background: linear-gradient(90deg, #f59e0b, #ef4444); border:0;}
+    .btn.ultimate:hover{filter:brightness(1.03)}
+    .list{margin:14px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px}
+    .li{display:flex; gap:10px; align-items:flex-start; color:#dbeafe}
+    .dot{
+      width:10px; height:10px; border-radius:999px; margin-top:6px;
+      background: #22c55e;
+      box-shadow: 0 0 0 3px #22c55e22;
+      flex:0 0 auto;
+    }
+    .mut{color:var(--muted)}
+    .foot{
+      margin-top:auto;
+      padding-top:14px;
+      border-top:1px dashed #22304a;
+      color:var(--muted);
+      font-size:12px; line-height:1.5;
+    }
+    .highlight{
+      border-color:#3b82f677;
+      box-shadow: 0 0 0 1px #3b82f655, 0 10px 30px #00000055;
+    }
+    .ultimateCard:before{
+      background: radial-gradient(700px 340px at 50% 0%, #f59e0b33, transparent 60%);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Premium plans</h1>
+        <p class="sub">
+          Tezlik, xavfsizlik va AI funksiyalar: Go → Plus → Pro → Ultimate.
+          “Unlimited” joylar <b>Fair-Use</b> siyosati bilan.
+        </p>
+      </div>
+
+      <div class="toggle" id="toggle">
+        <span class="pill active" data-mode="monthly">Oylik</span>
+        <span class="pill" data-mode="yearly">Yillik</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- GO -->
+      <section class="card">
+        <div class="badge">Start</div>
+        <div class="name">Go</div>
+        <p class="desc">AI bilan tanishish + tezroq news.</p>
+
+        <div class="priceRow">
+          <span class="strike" id="go_old">$9</span>
+          <span class="price" id="go_price">$7</span>
+          <span class="per" id="go_per">/oy</span>
+        </div>
+
+        <a href="/pay/go" class="btn primary">Go ni olish</a>
+
+        <ul class="list">
+          <li class="li"><span class="dot"></span><div>News: <b>tez</b></div></li>
+          <li class="li"><span class="dot"></span><div>Deep Analysis: <b>2–3 / oy</b></div></li>
+          <li class="li"><span class="dot"></span><div>AI “image” (senga o‘xshash): <b>5–10 / kun</b></div></li>
+          <li class="li"><span class="dot"></span><div>Mikrofon orqali gaplashish</div></li>
+          <li class="li"><span class="dot"></span><div>Auto log out (basic)</div></li>
+          <li class="li"><span class="dot"></span><div class="mut">Agent rejim: <b>3 marta</b> (cheklangan)</div></li>
+        </ul>
+
+        <div class="foot">
+          Go — “sinab ko‘rish” uchun. Limitlar resursni tejash uchun.
+        </div>
+      </section>
+
+      <!-- PLUS -->
+      <section class="card highlight">
+        <div class="badge">Most popular</div>
+        <div class="name">Plus</div>
+        <p class="desc">Eng ko‘p sotiladigan balans: tezlik + ko‘p AI.</p>
+
+        <div class="priceRow">
+          <span class="strike" id="plus_old">$16</span>
+          <span class="price" id="plus_price">$13</span>
+          <span class="per" id="plus_per">/oy</span>
+        </div>
+
+        <a href="/pay/plus" class="btn primary">Plus ni olish</a>
+
+        <ul class="list">
+          <li class="li"><span class="dot"></span><div>News: <b>juda tez</b></div></li>
+          <li class="li"><span class="dot"></span><div>Instant rejim</div></li>
+          <li class="li"><span class="dot"></span><div>Deep Analysis: <b>20–30 / oy</b></div></li>
+          <li class="li"><span class="dot"></span><div>AI “image”: <b>20–30 / kun</b></div></li>
+          <li class="li"><span class="dot"></span><div>Fayl tashlash: <b>unlimited (fair-use)</b></div></li>
+          <li class="li"><span class="dot"></span><div>Agent rejim: <b>3 marta</b></div></li>
+          <li class="li"><span class="dot"></span><div>Mikrofon orqali gaplashish</div></li>
+        </ul>
+
+        <div class="foot">
+          Plus — ko‘pchilik uchun “eng to‘g‘ri”. Qimmat compute faqat kerakli joyda.
+        </div>
+      </section>
+
+      <!-- PRO -->
+      <section class="card">
+        <div class="badge">Premium</div>
+        <div class="name">Pro</div>
+        <p class="desc">Real-time, xavfsizlik, va kuchli AI.</p>
+
+        <div class="priceRow">
+          <span class="strike" id="pro_old">$35</span>
+          <span class="price" id="pro_price">$29</span>
+          <span class="per" id="pro_per">/oy</span>
+        </div>
+
+        <a href="/pay/pro" class="btn primary">Pro ni olish</a>
+
+        <ul class="list">
+          <li class="li"><span class="dot"></span><div>News: <b>real-time</b></div></li>
+          <li class="li"><span class="dot"></span><div>Deep Analysis: <b>unlimited (fair-use)</b></div></li>
+          <li class="li"><span class="dot"></span><div>AI “image”: <b>60–100 / kun</b></div></li>
+          <li class="li"><span class="dot"></span><div>Security: <b>enhanced</b></div></li>
+          <li class="li"><span class="dot"></span><div>Auto log out + ma’lumot saqlash</div></li>
+          <li class="li"><span class="dot"></span><div>Mikrofon</div></li>
+        </ul>
+
+        <div class="foot">
+          Pro — “hammasi ishlaydi” darajasi. Abuse bo‘lsa limitlar ishlaydi.
+        </div>
+      </section>
+
+      <!-- ULTIMATE -->
+      <section class="card ultimateCard">
+        <div class="badge">Ultimate</div>
+        <div class="name">Ultimate</div>
+        <p class="desc">Power userlar uchun: eng yuqori limit + eng yuqori nazorat.</p>
+
+        <div class="priceRow">
+          <span class="strike" id="ult_old">$99</span>
+          <span class="price" id="ult_price">$79</span>
+          <span class="per" id="ult_per">/oy</span>
+        </div>
+
+        <a href="/pay/ultimate" class="btn ultimate">Ultimate ni olish</a>
+
+        <ul class="list">
+          <li class="li"><span class="dot"></span><div>AI “image”: <b>150–300 / kun</b></div></li>
+          <li class="li"><span class="dot"></span><div>Deep Analysis: <b>priority + fair-use</b></div></li>
+          <li class="li"><span class="dot"></span><div>Isolated / priority queue</div></li>
+          <li class="li"><span class="dot"></span><div>Advanced security + activity log</div></li>
+          <li class="li"><span class="dot"></span><div>2FA (majburiy)</div></li>
+          <li class="li"><span class="dot"></span><div>Kamera + mikrofon (premium)</div></li>
+          <li class="li"><span class="dot"></span><div>Pentest Learn: <b>full access (sandbox)</b></div></li>
+        </ul>
+
+        <div class="foot">
+          Ultimate — kuchli, lekin nazoratli. Platforma barqarorligi birinchi.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const prices = {
+      monthly: {
+        go: { old: 9, now: 7, per: "/oy" },
+        plus: { old: 16, now: 13, per: "/oy" },
+        pro: { old: 35, now: 29, per: "/oy" },
+        ult: { old: 99, now: 79, per: "/oy" },
+      },
+      yearly: {
+        // 2 oy tekin = monthly * 10
+        go: { old: 9*12, now: 7*10, per: "/yil" },
+        plus: { old: 16*12, now: 13*10, per: "/yil" },
+        pro: { old: 35*12, now: 29*10, per: "/yil" },
+        ult: { old: 99*12, now: 79*10, per: "/yil" },
+      }
+    };
+
+    function setMode(mode){
+      document.querySelectorAll(".pill").forEach(p=>p.classList.toggle("active", p.dataset.mode===mode));
+      document.getElementById("go_old").textContent = `$${prices[mode].go.old}`;
+      document.getElementById("go_price").textContent = `$${prices[mode].go.now}`;
+      document.getElementById("go_per").textContent = prices[mode].go.per;
+
+      document.getElementById("plus_old").textContent = `$${prices[mode].plus.old}`;
+      document.getElementById("plus_price").textContent = `$${prices[mode].plus.now}`;
+      document.getElementById("plus_per").textContent = prices[mode].plus.per;
+
+      document.getElementById("pro_old").textContent = `$${prices[mode].pro.old}`;
+      document.getElementById("pro_price").textContent = `$${prices[mode].pro.now}`;
+      document.getElementById("pro_per").textContent = prices[mode].pro.per;
+
+      document.getElementById("ult_old").textContent = `$${prices[mode].ult.old}`;
+      document.getElementById("ult_price").textContent = `$${prices[mode].ult.now}`;
+      document.getElementById("ult_per").textContent = prices[mode].ult.per;
+    }
+
+    document.getElementById("toggle").addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pill");
+      if(!pill) return;
+      setMode(pill.dataset.mode);
+    });
+
+    setMode("monthly");
+  </script>
+</body>
+</html>

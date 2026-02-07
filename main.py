@@ -3,17 +3,28 @@ import sqlite3
 import feedparser
 import requests
 from bs4 import BeautifulSoup
+from functools import wraps
+import stripe
+from flask import (
+    Flask, request, render_template, redirect,
+    url_for, session, jsonify, render_template_string
+)
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf import CSRFProtect
+
 from security import security_check, register_login_failure
 
 # ================= APP =================
+stripe.api_key = "sk_test_XXXXXXXXXXXXXXXX"
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "Ryuzen_Titan_Secret_2026")
+app.secret_key = os.environ.get("SECRET_KEY", "Ryuzen_Secret_2026")
+
+# CSRF (MUHIM: app'ga ulash)
 csrf = CSRFProtect(app)
 
 # ================= DB =================
-DB_PATH = "/tmp/wallpaper.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "wallpaper.db")
 
 def get_db():
     db = sqlite3.connect(DB_PATH)
@@ -32,7 +43,7 @@ EMERGENCY_HTML = """
 <html>
 <body style="background:black;color:red;
 display:flex;align-items:center;justify-content:center;
-height:100vh;font-family:monospace;">
+height:100vh;font-family:monospace;text-align:center;">
 <h1>⚠️ EMERGENCY MODE<br>SYSTEM SECURED BY RYUZEN TITAN</h1>
 </body>
 </html>
@@ -41,30 +52,28 @@ height:100vh;font-family:monospace;">
 # ================= SECURITY =================
 @app.before_request
 def run_security():
-  if request.endpoint in (
-    "signup", "terms",
-    "accept_terms", "static"
-):
-    return
+    # login/signup/terms/static’da rate-limitni ishlatmaymiz
+    if request.endpoint in ("signup", "login", "terms", "accept_terms", "static"):
+        return
 
     if security_check():
         return render_template_string(EMERGENCY_HTML), 503
 
 # ================= DECORATORS =================
 def login_required(fn):
+    @wraps(fn)
     def wrapper(*a, **kw):
         if "user" not in session:
-            return redirect("/login")
+            return redirect(url_for("login"))
         return fn(*a, **kw)
-    wrapper.__name__ = fn.__name__
     return wrapper
 
 def terms_required(fn):
+    @wraps(fn)
     def wrapper(*a, **kw):
         if not session.get("terms"):
-            return redirect("/terms")
+            return redirect(url_for("terms"))
         return fn(*a, **kw)
-    wrapper.__name__ = fn.__name__
     return wrapper
 
 # ================= ROUTES =================
@@ -78,26 +87,28 @@ def home():
 def shop():
     return render_template("shop.html")
 
+@app.route("/pricing")
+def pricing():
+    return render_template("pricing.html")
+
 # ---------- TERMS ----------
 @app.route("/terms")
 @login_required
 def terms():
     return render_template("terms.html")
 
-@csrf.exempt
 @app.route("/accept-terms", methods=["POST"])
 @login_required
 def accept_terms():
     session["terms"] = True
-    return redirect("/")
+    return redirect(url_for("home"))
 
 # ---------- SIGNUP ----------
-@csrf.exempt
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
 
         if not email or not password:
             return "Missing fields", 400
@@ -115,21 +126,19 @@ def signup():
         except sqlite3.IntegrityError:
             return "Email already registered", 409
 
-        # AUTO LOGIN
         session.clear()
         session["user"] = email
         session["terms"] = False
-        return redirect("/")
+        return redirect(url_for("home"))
 
     return render_template("signup.html")
 
 # ---------- LOGIN ----------
-@csrf.exempt
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
 
         db = get_db()
         row = db.execute(
@@ -142,31 +151,18 @@ def login():
             session.clear()
             session["user"] = email
             session["terms"] = False
-            return redirect("/")
+            return redirect(url_for("home"))
 
-        # ❗ LOGIN XATO — BRUTE FORCE HISOBLANADI
-        register_login_failure(
-            request.headers.get("X-Forwarded-For", request.remote_addr)
-        )
+        register_login_failure(email)
         return "Invalid email or password", 401
 
     return render_template("login.html")
-@app.route('/signup', methods=['POST'])
-def signup():
-    data = request.form.to_dict()
-    
-    # Hammasini bitta matnga yig'amiz va Gemini'ga beramiz
-    full_input = f"User: {data.get('username')}, Email: {data.get('email')}"
-    
-    if titan_ai_check(full_input):
-        return "<h1>🚨 TITAN AI: Hujum to'xtatildi! Siz bloklandingiz.</h1>", 403
 
-    # ... qolgan kod ...
 # ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/login")
+    return redirect(url_for("login"))
 
 # ---------- NEWS API ----------
 @app.route("/api/feed")
@@ -185,8 +181,7 @@ def api_feed():
 
     def get_image(url):
         try:
-            r = requests.get(url, timeout=5,
-                             headers={"User-Agent": "Mozilla/5.0"})
+            r = requests.get(url, timeout=5, headers={"User-Agent": "Mozilla/5.0"})
             soup = BeautifulSoup(r.text, "html.parser")
             og = soup.find("meta", property="og:image")
             return og["content"] if og else ""
@@ -213,20 +208,43 @@ def api_feed():
                 "link": link,
                 "image": img
             })
+
             if len(items) >= limit:
                 break
         if len(items) >= limit:
             break
 
     return jsonify({"count": len(items), "articles": items})
+@app.route("/pay/<plan>")
+@app.route("/success")
+@login_required
+def success():
+    # bu yerda DB ga plan yozasan
+    return "<h1>✅ Premium aktiv!</h1>"
+
+@login_required
+def pay(plan):
+    PRICE_IDS = {
+        "go": "price_xxx",
+        "plus": "price_xxx",
+        "pro": "price_xxx",
+        "ultimate": "price_xxx",
+    }
+
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        line_items=[{
+            "price": PRICE_IDS[plan],
+            "quantity": 1
+        }],
+        success_url="http://localhost:8000/success",
+        cancel_url="http://localhost:8000/pricing",
+        customer_email=session.get("user")
+    )
+    return redirect(session.url, code=303)
 
 # ================= RUN =================
 if __name__ == "__main__":
-    # Koyeb PORT o'zgaruvchisini o'zi beradi, biz uni o'qib olishimiz kerak
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
-
-
-
-
-
+    print("Server running on http://localhost:8000")
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=8000)
