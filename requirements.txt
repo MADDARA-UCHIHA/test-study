@@ -4,7 +4,9 @@ werkzeug
 feedparser
 requests
 beautifulsoup4
-unicorn
+google-generativeai
+gunicorn
+
 
 
 
