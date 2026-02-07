@@ -158,7 +158,17 @@ def login():
         return "Invalid email or password", 401
 
     return render_template("login.html")
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.form.to_dict()
+    
+    # Hammasini bitta matnga yig'amiz va Gemini'ga beramiz
+    full_input = f"User: {data.get('username')}, Email: {data.get('email')}"
+    
+    if titan_ai_check(full_input):
+        return "<h1>🚨 TITAN AI: Hujum to'xtatildi! Siz bloklandingiz.</h1>", 403
 
+    # ... qolgan kod ...
 # ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
@@ -221,4 +231,5 @@ def api_feed():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
 
