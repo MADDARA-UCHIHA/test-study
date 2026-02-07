@@ -241,8 +241,10 @@ def api_feed():
 
 # ================= RUN =================
 if __name__ == "__main__":
+    # Koyeb PORT o'zgaruvchisini o'zi beradi, biz uni o'qib olishimiz kerak
     port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host='0.0.0.0', port=port)
+
 
 
 
