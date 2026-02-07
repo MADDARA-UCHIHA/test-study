@@ -2,8 +2,20 @@ import os
 import sqlite3
 import feedparser
 import requests
-
 from bs4 import BeautifulSoup
+# main.py
+from koyeb import Sandbox
+
+sandbox = Sandbox.create(
+  image="ubuntu",
+  name="hello-world",
+  wait_ready=True,
+)
+
+result = sandbox.exec("echo 'Hello World'")
+print(result.stdout.strip())
+
+sandbox.delete()
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -231,5 +243,6 @@ def api_feed():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
 
 
