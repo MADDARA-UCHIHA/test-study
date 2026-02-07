@@ -5,7 +5,7 @@ feedparser
 requests
 beautifulsoup4
 unicorn
-google-genai
+
 
 
 
