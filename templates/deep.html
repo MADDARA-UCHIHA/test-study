@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Darkline News - AI</title>
+    <style>
+        body { background: #121212; color: white; font-family: sans-serif; }
+        .container { padding: 50px; text-align: center; }
+        textarea { width: 80%; height: 100px; margin-bottom: 10px; }
+        #ai-response { margin-top: 20px; padding: 15px; border: 1px solid #444; background: #1e1e1e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Darkline AI Chat</h1>
+        <textarea id="user-input" placeholder="Savolingizni yozing..."></textarea><br>
+        <button onclick="sendToAI()">Savol berish</button>
+        
+        <div id="ai-response">AI javobi bu yerda chiqadi...</div>
+    </div>
+
+    <script>
+        async function sendToAI() {
+            const text = document.getElementById('user-input').value;
+            const responseDiv = document.getElementById('ai-response');
+            
+            if (!text) return alert("Iltimos, matn yozing!");
+            
+            responseDiv.innerText = "O'ylanmoqdaman...";
+
+            try {
+                const response = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': "{{ csrf_token() }}" // Flask-WTF tokeni
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+                
+                if (data.result) {
+                    responseDiv.innerText = data.result;
+                } else {
+                    responseDiv.innerText = "Xato: " + (data.error || "Noma'lum xato");
+                }
+            } catch (error) {
+                responseDiv.innerText = "Server bilan aloqa uzildi!";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

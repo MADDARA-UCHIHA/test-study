@@ -1,0 +1,8 @@
+Flask
+Werkzeug
+flask-wtf
+waitress
+feedparser
+requests
+beautifulsoup4
+gunicorn

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
+  <title>DARKLINE — PROTOCOL & TERMS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body { 
+        background: #000; 
+        color: #ccc; 
+        font-family: 'Courier New', monospace; 
+        padding: 20px; 
+        line-height: 1.6; 
+        margin: 0;
+    }
+    .box { 
+        max-width: 850px; 
+        margin: 50px auto; 
+        border: 1px solid #0f0; 
+        padding: 40px; 
+        background: #050505; 
+        box-shadow: 0 0 30px rgba(0, 255, 0, 0.1); 
+        position: relative;
+    }
+    .box::before {
+        content: "[ CLASSIFIED DOCUMENT ]";
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        color: #0f0;
+        font-size: 12px;
+        letter-spacing: 2px;
+        opacity: 0.6;
+    }
+    h1 { 
+        color: #0f0; 
+        border-bottom: 1px dashed #0f0; 
+        padding-bottom: 15px; 
+        letter-spacing: 3px; 
+        font-size: 26px; 
+        text-shadow: 0 0 10px #0f0; 
+        margin-top: 0;
+    }
+    ul { padding-left: 0; list-style: none; }
+    li { 
+        margin-bottom: 20px; 
+        padding: 15px; 
+        border-left: 3px solid #0f0; 
+        background: rgba(0, 255, 0, 0.05); 
+        font-size: 14px;
+    }
+    b { 
+        color: #0f0; 
+        font-size: 16px; 
+        display: block; 
+        margin-bottom: 5px; 
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+    }
+    .warning { border-left-color: #ff003c; background: rgba(255, 0, 60, 0.05); }
+    .warning b { color: #ff003c; text-shadow: 0 0 5px #ff003c; }
+
+    .checkbox-container { 
+        margin-top: 40px; 
+        padding: 20px; 
+        border: 1px dotted #555; 
+        background: #0a0a0a;
+    }
+    .checkbox-container label {
+        cursor: pointer;
+        color: #fff;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    input[type="checkbox"] { 
+        accent-color: #0f0; 
+        width: 20px; 
+        height: 20px; 
+        cursor: pointer; 
+    }
+    button { 
+        width: 100%;
+        margin-top: 25px;
+        padding: 15px; 
+        background: none; 
+        border: 1px solid #0f0; 
+        cursor: pointer; 
+        font-weight: bold; 
+        color: #0f0; 
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        letter-spacing: 3px;
+        transition: 0.3s; 
+    }
+    button:hover:not(:disabled) { 
+        background: #0f0; 
+        color: #000; 
+        box-shadow: 0 0 20px #0f0; 
+    }
+    button:disabled {
+        border-color: #333;
+        color: #555;
+        cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h1><i class="fa-solid fa-user-shield"></i> DARKLINE DIRECTIVE & TERMS</h1>
+  <p>Before accessing the intelligence network, you must unconditionally agree to the following strict protocols:</p>
+
+  <ul>
+    <li>
+        <b>1. Operational Ethics</b>
+        Utilize the platform solely for educational, defensive, and information security purposes. Any execution of illegal cyber-attacks is strictly prohibited.
+    </li>
+    <li>
+        <b>2. Master AI Accuracy</b>
+        Intelligence provided by the Deep Analysis and AI modules is auto-generated. The system does not guarantee 100% accuracy. You must verify all intelligence before initiating any action.
+    </li>
+    <li>
+        <b>3. Absolute Responsibility</b>
+        The user is entirely and personally responsible for any legal or technical consequences resulting from the application of intelligence obtained from this network. Darkline administration assumes zero liability.
+    </li>
+    <li>
+        <b>4. Decryption & Data Usage</b>
+        Texts obtained from external sources via "Read Full" are for personal intelligence gathering only. Commercial distribution or unauthorized scraping of this data is forbidden.
+    </li>
+    <li class="warning">
+        <b>5. PENETEST LEARN (ULTIMATE TIER)</b>
+        Hacking techniques and exploits taught in the "Penetest Learn" module must ONLY be tested on systems you own or have explicit permission to test (Ethical Hacking). Attacking unauthorized networks will result in an immediate permanent ban and IP logging.
+    </li>
+  </ul>
+
+  <form method="POST" action="/accept-terms" class="checkbox-container">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <label>
+      <input type="checkbox" id="agreeCheck" required onchange="toggleButton()"> 
+      <span>I understand that DARKLINE is for <b>intelligence & educational purposes</b> and I accept the directive.</span>
+    </label>
+    
+    <button type="submit" id="initBtn" disabled>INITIALIZE CREDENTIALS</button>
+  </form>
+</div>
+
+<script>
+    function toggleButton() {
+        const checkbox = document.getElementById('agreeCheck');
+        const btn = document.getElementById('initBtn');
+        if(checkbox.checked) {
+            btn.disabled = false;
+            btn.innerHTML = "INITIALIZE CREDENTIALS <i class='fa-solid fa-unlock'></i>";
+        } else {
+            btn.disabled = true;
+            btn.innerHTML = "INITIALIZE CREDENTIALS";
+        }
+    }
+</script>
+
+</body>
+</html>

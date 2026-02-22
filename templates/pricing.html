@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UPGRADE ● DARKLINE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background:#000; color:#0f0; font-family:'Courier New', monospace; text-align:center; margin:0; padding-top:40px; padding-bottom: 60px; }
+        h1 { letter-spacing: 5px; text-shadow: 0 0 15px #0f0; margin-bottom: 10px; font-size: 28px; }
+        .subtitle { color: #666; font-size: 13px; letter-spacing: 2px; margin-bottom: 40px; }
+        
+        .plans-container { display:flex; justify-content:center; gap:25px; padding:0 40px; flex-wrap:wrap; margin-bottom: 50px; }
+        
+        .p-card { border:1px solid #111; padding:30px 25px; width:240px; background:#050505; transition: 0.4s; position:relative; overflow:hidden; display: flex; flex-direction: column; }
+        .p-card:hover { border-color:#0f0; box-shadow: 0 0 25px rgba(0,255,0,0.15); transform: translateY(-5px); }
+        .ultimate-glow { border: 2px solid #0f0; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
+        
+        .tier-name { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #fff; letter-spacing: 2px; }
+        .price { font-size: 45px; margin: 10px 0 25px 0; color: #fff; }
+        .price span { font-size: 14px; color: #0f0; }
+        
+        .features { text-align: left; margin: 0 0 30px 0; flex-grow: 1; }
+        .features ul { list-style: none; padding: 0; margin: 0; }
+        .features li { margin-bottom: 12px; font-size: 11px; display: flex; align-items: center; gap: 10px; color: #aaa; letter-spacing: 1px; }
+        .features li::before { content: "►"; color: #0f0; font-size: 9px; }
+        
+        /* Gumroad Linklari (Tugmalar) */
+        .btn-buy { width:100%; padding:15px; background:#0f0; color:#000; border:none; cursor:pointer; font-weight:bold; letter-spacing: 2px; transition: 0.3s; text-decoration: none; display: block; box-sizing: border-box; }
+        .btn-buy:hover { background: #fff; box-shadow: 0 0 20px #fff; }
+        
+        .current-tag { position: absolute; top: 15px; right: -35px; background: #0f0; color: #000; padding: 5px 40px; transform: rotate(45deg); font-size: 10px; font-weight: bold; letter-spacing: 1px; }
+
+        /* Maxfiy Kalit Oynasi */
+        .activation-box { border: 1px dashed #0f0; background: #050505; display: inline-block; padding: 30px 40px; box-shadow: 0 0 30px rgba(0,255,0,0.05); }
+        .activation-box h3 { margin: 0 0 20px 0; color: #fff; font-size: 16px; letter-spacing: 2px; }
+        .key-input { background: #000; border: 1px solid #333; color: #0f0; padding: 15px 20px; width: 300px; font-family: monospace; font-size: 18px; text-align: center; letter-spacing: 3px; outline: none; transition: 0.3s; }
+        .key-input:focus { border-color: #0f0; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
+        .btn-activate { padding: 16px 30px; background: #0f0; color: #000; border: none; cursor: pointer; font-weight: bold; letter-spacing: 2px; margin-left: -5px; transition: 0.3s; }
+        .btn-activate:hover { background: #fff; box-shadow: 0 0 15px #fff; }
+        #statusMsg { margin-top: 20px; font-size: 13px; font-weight: bold; letter-spacing: 1px; min-height: 15px; }
+    </style>
+</head>
+<body>
+
+    <h1>DARKLINE UPGRADE PROTOCOL</h1>
+    <div class="subtitle">GO | PLUS | PRO | ULTIMATE</div>
+
+    <div class="plans-container">
+        <div class="p-card">
+            {% if tier == 'Go' %}<div class="current-tag">ACTIVE</div>{% endif %}
+            <div class="tier-name">GO</div>
+            <div class="price">$7<span>/mo</span></div>
+            <div class="features">
+                <ul>
+                    <li>Full Decryption Access</li>
+                    <li>Voice Intel Module</li>
+                    <li>Basic Data Analysis</li>
+                    <li>Ad-Free Interface</li>
+                </ul>
+            </div>
+            <a href="https://ghero0.gumroad.com/l/kssxd" target="_blank" class="btn-buy">UPGRADE TO GO</a>
+        </div>
+
+        <div class="p-card">
+            {% if tier == 'Plus' %}<div class="current-tag">ACTIVE</div>{% endif %}
+            <div class="tier-name">PLUS</div>
+            <div class="price">$13<span>/mo</span></div>
+            <div class="features">
+                <ul>
+                    <li>2x AI Analysis Depth</li>
+                    <li>Deep Risk Scanner</li>
+                    <li>Extended History</li>
+                    <li>Priority Intel Feed</li>
+                </ul>
+            </div>
+            <a href="https://ghero0.gumroad.com/l/rqmmqk" target="_blank" class="btn-buy">GET PLUS</a>
+        </div>
+
+        <div class="p-card">
+            {% if tier == 'Pro' %}<div class="current-tag">ACTIVE</div>{% endif %}
+            <div class="tier-name">PRO</div>
+            <div class="price">$29<span>/mo</span></div>
+            <div class="features">
+                <ul>
+                    <li>Threat Actor Database</li>
+                    <li>Global Asset Tracking</li>
+                    <li>Unlimited Intelligence</li>
+                    <li>Team Collaboration</li>
+                </ul>
+            </div>
+            <a href="https://ghero0.gumroad.com/l/fgodv" target="_blank" class="btn-buy">UPGRADE TO PRO</a>
+        </div>
+
+        <div class="p-card ultimate-glow">
+            {% if tier == 'Ultimate' %}<div class="current-tag">ACTIVE</div>{% endif %}
+            <div class="tier-name" style="color:#0f0;">ULTIMATE</div>
+            <div class="price">$79<span>/mo</span></div>
+            <div class="features">
+                <ul>
+                    <li style="color:#0f0;">PENETEST LEARN ACCESS</li>
+                    <li>Real-time Monitoring</li>
+                    <li>Master-Level Insights</li>
+                    <li>Private API Access</li>
+                    <li>Zero-Day Alerts</li>
+                </ul>
+            </div>
+            <a href="https://ghero0.gumroad.com/l/depqfb" target="_blank" class="btn-buy">GET ULTIMATE</a>
+        </div>
+    </div>
+
+    <div class="activation-box">
+        <h3>[ INITIALIZE PURCHASED ACCESS KEY ]</h3>
+        <input type="text" id="accessKey" class="key-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off">
+        <button class="btn-activate" onclick="activateKey()">AUTHORIZE</button>
+        <div id="statusMsg"></div>
+    </div>
+
+    <script>
+        async function activateKey() {
+            const keyInput = document.getElementById('accessKey').value.trim();
+            const msg = document.getElementById('statusMsg');
+            const btn = document.querySelector('.btn-activate');
+            
+            if(!keyInput) {
+                msg.style.color = "#ff003c";
+                msg.innerText = "ERROR: KEY CANNOT BE EMPTY.";
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerText = "VERIFYING...";
+            msg.style.color = "#888";
+            msg.innerText = "CONTACTING GUMROAD SERVERS...";
+            
+            try {
+                // main.py dagi /api/activate-key ga so'rov yuboramiz
+                const res = await fetch('/api/activate-key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({key: keyInput})
+                });
+                
+                const data = await res.json();
+                
+                if(data.status === "success") {
+                    msg.style.color = "#0f0";
+                    msg.innerHTML = `<i class="fa-solid fa-check"></i> ACCESS GRANTED. UPGRADED TO ${data.tier.toUpperCase()}`;
+                    btn.innerText = "SUCCESS";
+                    // 2 soniyadan keyin asosiy sahifaga qaytadi
+                    setTimeout(() => location.href = "/", 2000);
+                } else {
+                    msg.style.color = "#ff003c";
+                    msg.innerHTML = `<i class="fa-solid fa-xmark"></i> ${data.message}`;
+                    btn.innerText = "AUTHORIZE";
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                msg.style.color = "#ff003c";
+                msg.innerText = "NETWORK ERROR. CONNECTION LOST.";
+                btn.innerText = "AUTHORIZE";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
