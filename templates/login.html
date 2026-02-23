@@ -1,18 +1,79 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Darkline</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { 
+            background: #000; 
+            color: #0f0; 
+            font-family: 'Courier New', monospace; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 0;
+        }
+        .login-container {
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px solid #0f0;
+            padding: 40px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            text-align: center;
+        }
+        h2 { letter-spacing: 5px; margin-bottom: 30px; font-size: 1.5rem; }
+        .input-group { margin-bottom: 20px; position: relative; }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            border: 1px solid #333;
+            color: #0f0;
+            font-family: monospace;
+            outline: none;
+            box-sizing: border-box;
+        }
+        input:focus { border-color: #0f0; box-shadow: 0 0 10px rgba(0, 255, 0, 0.3); }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #0f0;
+            color: #000;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+        .login-btn:hover { background: #0c0; box-shadow: 0 0 20px #0f0; }
+        .footer-links { margin-top: 20px; font-size: 0.8rem; }
+        .footer-links a { color: #666; text-decoration: none; }
+        .footer-links a:hover { color: #0f0; }
+    </style>
 </head>
 <body>
-    <div class="box">
-        <h2>Login</h2>
-        <form action="/login" method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <a href="/signup">New here? Sign Up</a>
+
+<div class="login-container">
+    <h2>SYSTEM ACCESS</h2>
+    <form action="/login" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="input-group">
+            <input type="email" name="email" placeholder="ENCRYPTED EMAIL" required>
+        </div>
+        <div class="input-group">
+            <input type="password" name="password" placeholder="ACCESS CODE" required>
+        </div>
+        <button type="submit" class="login-btn">INITIALIZE LOGIN</button>
+    </form>
+    <div class="footer-links">
+        <a href="/signup">NEW USER? CREATE CREDENTIALS</a>
     </div>
+</div>
+
 </body>
 </html>
-

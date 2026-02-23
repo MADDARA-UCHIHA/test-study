@@ -1,167 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
-  <meta charset="UTF-8">
-  <title>DARKLINE●NEWS</title>
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-  <!-- MUHIM: viewport head ichida -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-
-<nav class="navbar">
-<div class="logo-box">
-  <img src="{{ url_for('static', filename='logo.svg') }}" alt="DARKLINE-NEWS logo">
-  <span>DARKLINE●NEWS</span>
-</div>
-
-
-  <div>
-    <a href="/pricing" class="btn">💎 Premium</a>
-    <button class="shop-btn" onclick="location.href='/shop'">🛒 Shop</button>
-    <button class="shop-btn" onclick="location.href='/logout'">🚪 Logout</button>
-  </div>
-</nav>
-
-<main class="content">
-  <p id="status">Loading news...</p>
-  <div id="grid"></div>
-</main>
-
-<script src="{{ url_for('static', filename='news.js') }}"></script>
-</body>
-</html>
-
-
-=======
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DARKLINE ● NEWS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        body { background:#000; color:#0f0; font-family:'Courier New', monospace; margin:0; overflow-x: hidden; }
-        header { border-bottom:1px solid #0f0; padding:20px 40px; display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+        body { background:#000; color:#0f0; font-family:'Courier New', monospace; margin:0; }
+        header { border-bottom:2px solid #0f0; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.9); position:sticky; top:0; z-index:100; }
+        
+        /* Full Read Card (Modal) */
+        #fullReadModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:1000; }
+        .intel-card { width:90%; max-width:850px; margin:5% auto; background:#050505; border:1px solid #0f0; padding:30px; color:#0f0; box-shadow:0 0 25px #0f0; max-height:85vh; overflow-y:auto; position: relative; }
+        
+        .btn-neon { background:none; border:1px solid #0f0; color:#0f0; padding:10px 20px; cursor:pointer; font-weight:bold; transition:0.3s; margin-bottom: 15px; }
+        .btn-neon:hover { background:#0f0; color:#000; box-shadow:0 0 15px #0f0; }
+        .close-icon { position: absolute; top: 15px; right: 20px; font-size: 30px; color: #f03; cursor: pointer; border: none; background: none; }
+        
         .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:25px; padding:30px; }
-        
-        /* HEADER BUTTONS */
-        .nav-buttons { display: flex; align-items: center; gap: 10px; }
-        .btn-header-analyze { background:none; border:1px solid #0f0; color:#0f0; padding:6px 15px; cursor:pointer; font-family: monospace; font-weight: bold; transition: 0.3s; }
-        .btn-header-analyze:hover { background:#0f0; color:#000; box-shadow: 0 0 10px #0f0; }
-        
-        .btn-upgrade { background:#0f0; color:#000; border:none; padding:7px 15px; cursor:pointer; font-weight:bold; font-family: monospace; }
-        .btn-logout { background:#ff003c; border:none; color:#fff; padding:7px 15px; cursor:pointer; font-family: monospace; }
-
-        /* CARD DESIGN */
-        .card { border:1px solid #111; background:#050505; transition:0.3s; display:flex; flex-direction:column; position: relative; overflow: hidden; }
-        .card:hover { border-color:#0f0; box-shadow:0 0 15px rgba(0,255,0,0.2); transform: translateY(-5px); }
-        .card-img { width:100%; height:180px; object-fit:cover; border-bottom:1px solid #0f0; filter: grayscale(100%); }
-        .card-body { padding:20px; flex-grow:1; }
-        .card-title { font-size: 16px; margin: 0 0 10px 0; color: #fff; }
-        .btn-read { width:100%; padding:10px; background:none; border:1px solid #333; color:#888; cursor:pointer; font-weight:bold; transition: 0.3s; }
-        .btn-read:hover { border-color: #0f0; color: #0f0; }
-
-        /* MODAL */
-        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:1000; }
-        .m-content { width:90%; max-width:800px; margin:5% auto; background:#000; border:1px solid #0f0; padding:30px; color:#0f0; font-family: monospace; }
-        .ai-terminal { background: #050505; border: 1px dashed #0f0; padding: 20px; min-height: 200px; white-space: pre-wrap; margin-top: 20px; }
+        .card { border:1px solid #111; background:#050505; padding: 15px; display:flex; flex-direction:column; }
+        .card-img { width:100%; height:180px; object-fit:cover; border-bottom:1px solid #0f0; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1 style="margin:0; letter-spacing:5px; font-size: 22px; cursor:pointer;" onclick="location.reload()">DARKLINE NEWS</h1>
-    
-    <div class="nav-buttons">
-        <span style="font-size:11px; color:#666; margin-right:10px;">ID: <span style="color:#0f0;">{{ user }}</span> | TIER: <span style="color:#fff;">{{ tier | upper }}</span></span>
-        
-        <button class="btn-header-analyze" onclick="startHeaderAnalysis()">
-            <i class="fa-solid fa-brain"></i> DEEP ANALYSIS
-        </button>
-        
-        <button class="btn-upgrade" onclick="location.href='/pricing'">UPGRADE</button>
-        <button class="btn-logout" onclick="location.href='/logout'">LOGOUT</button>
+    <h1 style="margin:0; letter-spacing:5px; font-size:22px;">DARKLINE●NEWS</h1>
+    <div style="display:flex; gap:15px; align-items:center;">
+        <span style="font-size:11px; color:#666;">ID: <b style="color:#0f0;">{{ user }}</b> | TIER: <b style="color:#fff;">{{ tier | upper }}</b></span>
+        <button class="btn-neon" onclick="location.href='/logout'" style="border-color:#f03; color:#f03; margin-bottom:0;">LOGOUT</button>
     </div>
 </header>
 
-<main class="grid" id="grid">
-    <h3 style="color:#0f0; text-align:center; grid-column:1/-1;">FETCHING DATA STREAMS...</h3>
+<main id="grid" class="grid">
+    <h3 style="text-align:center; grid-column:1/-1;">FETCHING DATA STREAMS...</h3>
 </main>
 
-<div id="modal">
-    <div class="m-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #0f0; padding-bottom:10px;">
-            <h2 id="mTitle" style="margin:0; font-size:18px;">NEURAL INTERFACE</h2>
-            <button onclick="closeM()" style="background:none; color:#ff003c; border:none; font-size:30px; cursor:pointer;">&times;</button>
+<div id="fullReadModal">
+    <div class="intel-card">
+        <button class="close-icon" onclick="closeIntel()">&times;</button>
+        <h2 id="mTitle" style="border-bottom:1px solid #0f0; padding-bottom:10px; margin-top: 0;">NEURAL INTERFACE</h2>
+        
+        <div style="padding: 15px 0; border-bottom: 1px dashed #1a1a1a; margin-bottom: 15px;">
+            <button class="btn-neon" id="speakBtn" style="margin-bottom: 0;">
+                <i class="fa-solid fa-volume-high"></i> LISTEN INTEL (AI VOICE)
+            </button>
         </div>
-        <div id="aiResponse" class="ai-terminal">>> AWAITING MASTER COMMAND...</div>
+
+        <div id="mBody" style="line-height:1.7; font-size: 1.1rem; white-space: pre-wrap;">>> AWAITING INTEL...</div>
+        
+        <div style="display:flex; gap:15px; border-top: 1px solid #1a1a1a; padding-top: 15px; margin-top: 20px;">
+            <button class="btn-neon" onclick="closeIntel()" style="margin-bottom: 0;">DISMISS</button>
+        </div>
     </div>
 </div>
 
 <script>
-    const userTier = "{{ tier }}";
-    let lastArticle = null;
+    let activeIntel = "";
 
     async function loadFeed() {
         const grid = document.getElementById('grid');
         try {
             const res = await fetch('/api/feed');
             const data = await res.json();
-            lastArticle = data.articles[0]; // Headerdagi tahlil uchun oxirgi yangilikni saqlaymiz
             grid.innerHTML = data.articles.map(a => `
                 <div class="card">
                     <img src="${a.image}" class="card-img">
-                    <div class="card-body">
-                        <h3 class="card-title">${a.title}</h3>
-                        <button class="btn-read" onclick="window.open('${a.full_link}', '_blank')">READ SOURCE</button>
-                    </div>
+                    <h3 style="font-size: 16px; margin: 15px 0; color: #fff;">${a.title}</h3>
+                    <button class="btn-neon" onclick="readFullIntel('${a.full_link}', '${a.title.replace(/'/g, "\\'")}')">READ FULL</button>
                 </div>
             `).join('');
-        } catch (e) { grid.innerHTML = "OFFLINE"; }
+        } catch (e) { grid.innerHTML = "!! SYSTEM OFFLINE !!"; }
     }
 
-    // HEADERDAGI TUGMA FUNKSIYASI
-    async function startHeaderAnalysis() {
-        if (userTier === 'Free' || userTier === 'Go') {
-            alert("ACCESS DENIED: PRO/ULTIMATE CLEARANCE REQUIRED.");
-            return;
-        }
-        if (!lastArticle) return;
-
-        const modal = document.getElementById('modal');
-        const aiBox = document.getElementById('aiResponse');
+    async function readFullIntel(url, title) {
+        const modal = document.getElementById('fullReadModal');
+        const body = document.getElementById('mBody');
+        document.getElementById('mTitle').innerText = title;
         modal.style.display = 'block';
-        aiBox.innerHTML = ">> CONNECTING TO DARKLINE CORE...\n>> ANALYZING LATEST INTEL: " + lastArticle.title;
+        body.innerHTML = ">> DECRYPTING FULL INTEL FROM SOURCE...";
 
         try {
-            const res = await fetch('/api/deep-analyze', {
-                method:'POST',
-                headers:{'Content-Type':'application/json','X-CSRFToken':"{{csrf_token()}}"},
-                body:JSON.stringify({url: lastArticle.full_link, title: lastArticle.title})
+            const res = await fetch('/api/full-intel', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': "{{ csrf_token() }}"},
+                body: JSON.stringify({url: url})
             });
             const data = await res.json();
-            if(data.error) aiBox.innerHTML = "!! " + data.error;
-            else typeWriter(aiBox, data.analysis);
-        } catch(e) { aiBox.innerHTML = "!! CONNECTION FAILED !!"; }
+            activeIntel = data.content;
+            body.innerHTML = data.content;
+            
+            document.getElementById('speakBtn').onclick = () => speakIntel(activeIntel);
+        } catch (e) { body.innerHTML = "!! DATA EXTRACTION FAILED !!"; }
     }
 
-    function typeWriter(element, text) {
-        element.innerHTML = "";
-        let i = 0;
-        function type() {
-            if (i < text.length) {
-                element.innerHTML = text.substring(0, i + 1);
-                i++;
-                setTimeout(type, 15);
-            }
-        }
-        type();
+    function speakIntel(text) {
+        window.speechSynthesis.cancel();
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.lang = 'en-US';
+        speech.rate = 0.95;
+        window.speechSynthesis.speak(speech);
     }
 
-    function closeM() { document.getElementById('modal').style.display = 'none'; }
+    function closeIntel() {
+        window.speechSynthesis.cancel();
+        document.getElementById('fullReadModal').style.display = 'none';
+    }
+
     document.addEventListener('DOMContentLoaded', loadFeed);
 </script>
 </body>
 </html>
-

@@ -5,7 +5,7 @@ import feedparser
 import google.generativeai as genai
 from bs4 import BeautifulSoup
 from functools import wraps
-from flask import Flask, jsonify, render_template, session, redirect, url_for, request, render_template_string
+from flask import Flask, jsonify, render_template, session, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -40,12 +40,6 @@ def init_db():
 init_db()
 
 # --- SECURITY UTILS ---
-EMERGENCY_HTML = """
-<body style="background:black;color:#0f0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;text-align:center;">
-<div><h1>⚠️ SYSTEM SECURED BY RYUZEN </h1><p>ACCESS TEMPORARILY RESTRICTED BY NEURAL SHIELD.</p></div>
-</body>
-"""
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -62,12 +56,17 @@ RSS_SOURCES = [
 ]
 
 def scrap_full_text(url):
+    """BBC va boshqa manbalardan to'liq matnni ajratib oluvchi Neural Scraper"""
     try:
-        res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        res = requests.get(url, headers=headers, timeout=7)
         soup = BeautifulSoup(res.text, 'html.parser')
+        
+        # Maqola matnini qidirish (BBC va boshqa ko'plab yangilik saytlari uchun)
         paragraphs = soup.find_all('p')
-        content = "\n\n".join([p.get_text() for p in paragraphs if len(p.get_text()) > 30])
-        return content if content else "Data extraction failed."
+        content = "\n\n".join([p.get_text() for p in paragraphs if len(p.get_text()) > 40])
+        
+        return content if len(content) > 100 else "Critical Error: Content encrypted or inaccessible."
     except:
         return "Connection lost. Darkline target unreachable."
 
@@ -84,7 +83,7 @@ def api_feed():
     articles = []
     for url in RSS_SOURCES:
         feed = feedparser.parse(url)
-        for entry in feed.entries[:20]:
+        for entry in feed.entries[:10]:
             clean_summary = BeautifulSoup(entry.get('summary', ''), "html.parser").get_text()
             articles.append({
                 "title": entry.title,
@@ -93,6 +92,18 @@ def api_feed():
                 "full_link": entry.link
             })
     return jsonify({"articles": articles, "tier": session.get('tier')})
+
+@app.route("/api/full-intel", methods=['POST'])
+@login_required
+def full_intel():
+    """To'liq matnni olish uchun yangi endpoint"""
+    data = request.json
+    url = data.get('url')
+    if not url:
+        return jsonify({"error": "No target URL provided."}), 400
+    
+    intel = scrap_full_text(url)
+    return jsonify({"content": intel})
 
 @app.route("/api/deep-analyze", methods=['POST'])
 @login_required
@@ -112,9 +123,10 @@ def deep_analyze():
     except:
         return jsonify({"error": "Satellite link unstable."}), 500
 
-# --- AUTH SYSTEM ---
+# --- AUTH SYSTEM (CSRF EXEMPTED FOR FAST LOGIN) ---
 
 @app.route("/login", methods=['GET', 'POST'])
+@csrf.exempt
 def login():
     if request.method == 'POST':
         user_input = request.form.get('email')
@@ -128,6 +140,7 @@ def login():
     return render_template("login.html")
 
 @app.route("/signup", methods=['GET', 'POST'])
+@csrf.exempt
 def signup():
     if request.method == 'POST':
         user_input = request.form.get('email')

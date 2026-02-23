@@ -1,45 +1,4 @@
-<<<<<<< HEAD
-const grid = document.getElementById("grid");
-const statusEl = document.getElementById("status");
 
-async function loadNews() {
-  try {
-    const res = await fetch("/api/feed?limit=1000");
-    const data = await res.json();
-
-    statusEl.textContent = `Loaded ${data.count} articles`;
-    grid.innerHTML = "";
-
-    data.articles.forEach(a => {
-      const card = document.createElement("div");
-      card.className = "card";
-localStorage.setItem("termsAccepted", "yes");
-
-      let imgHtml = "";
-      if (a.image) {
-        imgHtml = `<img src="${a.image}" class="card-img">`;
-      }
-
-      card.innerHTML = 
-        `${imgHtml}
-        <h3>${a.title}</h3>
-        <small>${a.source} • ${a.published}</small>
-        <p>${a.summary}</p>
-        <a href="${a.link}" target="_blank">Read full →</a>`;
-
-      grid.appendChild(card);
-    });
-
-  } catch (e) {
-    statusEl.textContent = "Failed to load news";
-  }
-}
-
-
-loadNews();
-
-
-=======
 let modalTextBuffer = "";
 
 // 1. Yangiliklarni yuklash
@@ -128,4 +87,35 @@ function closeModal() {
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
 document.addEventListener("DOMContentLoaded", loadNews);
->>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
+
+async function openFullIntel(url, title) {
+    const modal = document.getElementById('modal');
+    const aiBox = document.getElementById('aiResponse');
+    modal.style.display = 'block';
+    aiBox.innerHTML = ">> DECRYPTING FULL DATA STREAMS...";
+
+    try {
+        const res = await fetch('/api/full-intel', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': "{{ csrf_token() }}"},
+            body: JSON.stringify({url: url})
+        });
+        const data = await res.json();
+        
+        // Matnni modalga chiqarish va LISTEN tugmasini qo'shish
+        aiBox.innerHTML = `<h3>${title}</h3><hr><p>${data.content}</p><br>
+            <button class="action-btn" onclick="listenIntel('${data.content.replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-volume-high"></i> LISTEN INTEL
+            </button>`;
+    } catch (e) {
+        aiBox.innerHTML = "!! FAILED TO REACH TARGET !!";
+    }
+}
+
+function listenIntel(text) {
+    window.speechSynthesis.cancel();
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = 'en-US';
+    speech.rate = 0.95;
+    window.speechSynthesis.speak(speech);
+}
