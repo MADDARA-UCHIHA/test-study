@@ -1,130 +1,24 @@
-<<<<<<< HEAD
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f0f0f;
-  color: #eee;
-}
-
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px 20px;
-  background: #111;
-}
-
-.logo {
-  margin: 0;
-}
-
-.shop-btn {
-  background: #4da3ff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.content {
-  padding: 20px;
-}
-
-.card {
-  border: 1px solid #222;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  background: #151515;
-}
-
-.card h3 {
-  margin: 0 0 8px;
-}
-
-.card a {
-  color: #4da3ff;
-  text-decoration: none;
-}
-.card-img {
-  width: 500px;
-  max-height: 300px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
-@media (max-width: 768px) {
-  .body {
-    padding: 10px;
-    font-size: 15px;
-  }
-  .header{
-    flex-direction: column;
+/* Navbar asosiy qismi */
+nav {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-  }
-  #grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  .card{
-    width: 100%;
-   padding: 12px;
-  }
-  .card-img{
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-  }
-  .card h2{
-    font-size: 18px;
-  }
-  .card-desc{
-    font-size: 14px;
-    line-height: 1.5;
-  }
-  .linkbtn{
-    width: 100%;
-    padding: 12px;
-    font-size: 15px;
-  }
-  input,button{
-    font-size: 16px;
-  }
-}
-img{
-  max-width: 100%;
-  display: block;
-}
-.logo-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    padding: 1rem 2rem;
+    background: rgba(0, 0, 0, 0.9);
+    border-bottom: 1px solid #0f0;
 }
 
-.logo-box img {
-  width: 42px;
-  height: 42px;
+/* Logo va tugmalar bloklarini ajratish */
+.nav-left {
+    display: flex;
+    align-items: center;
 }
 
-.logo-box span {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 1px;
+.nav-right {
+    display: flex;
+    gap: 20px;
+    align-items: center;
 }
-.btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:10px 14px;
-  border-radius:10px;
-  background:#3b82f6;
-  color:#fff;
-  text-decoration:none;
-  font-weight:700;
-}
-.btn:hover{ filter:brightness(1.05); }
-=======
 /* --- 1. ASOSIY SOZLAMALAR --- */
 :root {
     --bg: #050505;
@@ -350,4 +244,3 @@ button:hover, .card button:hover {
     letter-spacing: 3px;
     text-transform: uppercase;
 }
->>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
