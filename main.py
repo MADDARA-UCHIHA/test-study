@@ -147,7 +147,7 @@ def signup():
 def logout():
     session.clear()
     return redirect(url_for('login'))
-
+return render_template("index.html")
 if __name__ == "__main__":
     # Serverni professional Waitress orqali ishga tushiramiz
     from waitress import serve
