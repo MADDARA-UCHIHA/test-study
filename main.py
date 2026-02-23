@@ -84,7 +84,7 @@ def api_feed():
     articles = []
     for url in RSS_SOURCES:
         feed = feedparser.parse(url)
-        for entry in feed.entries[:20]: # 1000 ta uchun limitni oshirish mumkin
+        for entry in feed.entries[:20]:
             clean_summary = BeautifulSoup(entry.get('summary', ''), "html.parser").get_text()
             articles.append({
                 "title": entry.title,
@@ -147,9 +147,9 @@ def signup():
 def logout():
     session.clear()
     return redirect(url_for('login'))
-return render_template("index.html")
+
+# --- SERVER RUN ---
 if __name__ == "__main__":
-    # Serverni professional Waitress orqali ishga tushiramiz
     from waitress import serve
     print("DARKLINE TITAN CORE ONLINE ON PORT 8080")
     serve(app, host="0.0.0.0", port=8080)
