@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -123,3 +124,230 @@ img{
   font-weight:700;
 }
 .btn:hover{ filter:brightness(1.05); }
+=======
+/* --- 1. ASOSIY SOZLAMALAR --- */
+:root {
+    --bg: #050505;
+    --card: #0c0c0c;
+    --accent: #00ff00; /* Neon Yashil */
+    --accent-glow: rgba(0, 255, 0, 0.3);
+    --text-main: #ffffff;
+    --text-dim: #888888;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* --- 2. HEADER VA NAVIGATSIYA --- */
+.top-bar {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0 25px;
+    background: #000;
+    border-bottom: 1px solid #1a1a1a;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 70px;
+}
+
+.logo-box { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    cursor: pointer;
+}
+.logo-box img { height: 35px; width: auto; }
+.logo-box span { 
+    font-weight: 900; 
+    letter-spacing: 2px; 
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* Dropdown Menu */
+nav {
+    display: none;
+    position: absolute;
+    top: 75px;
+    right: 25px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    padding: 10px;
+    border-radius: 8px;
+    flex-direction: column;
+    min-width: 200px;
+    z-index: 9999;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 15px var(--accent-glow);
+}
+
+nav.active { display: flex !important; }
+
+nav a, nav button {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 12px 15px;
+    border-bottom: 1px solid #1a1a1a;
+    font-size: 0.9rem;
+    background: transparent;
+    text-align: left;
+    border-left: none; border-right: none; border-top: none;
+}
+
+nav a:last-child { border-bottom: none; }
+nav a:hover { color: var(--accent); background: #111; }
+
+/* --- 3. GRID VA KARTALAR --- */
+#grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+    gap: 25px; 
+    padding: 30px; 
+}
+
+.news-card { 
+    background: var(--card); 
+    border-radius: 12px; 
+    border: 1px solid #1a1a1a; 
+    overflow: hidden; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    position: relative;
+}
+
+.news-card:hover { 
+    border-color: var(--accent); 
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 255, 0, 0.1);
+}
+
+.card-img { width: 100%; height: 200px; object-fit: cover; filter: grayscale(20%); }
+.news-card:hover .card-img { filter: grayscale(0%); }
+
+.card-content { padding: 20px; }
+
+/* Card ichidagi Logo va Identifikatsiya */
+.card-identity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.card-identity img { width: 20px; height: 20px; }
+.card-identity span { 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    color: var(--text-main); 
+    letter-spacing: 1px;
+}
+
+.intel-tag {
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+/* --- 4. NEON TUGMALAR (HAMMA JOY UCHUN) --- */
+button, 
+.action-btn, 
+#speakBtn, 
+.card button, 
+nav button {
+    background: transparent !important;
+    color: var(--accent) !important;
+    border: 1px solid var(--accent) !important;
+    padding: 10px 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    text-shadow: 0 0 5px var(--accent);
+    box-shadow: inset 0 0 5px var(--accent-glow), 0 0 5px var(--accent-glow);
+    font-size: 0.8rem;
+    outline: none;
+}
+
+button:hover, .card button:hover {
+    background: var(--accent) !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent-glow);
+    text-shadow: none;
+}
+
+/* --- 5. MODAL VA INTELLIGENCE REPORT --- */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 15px;
+}
+
+#modalTitle { 
+    margin: 0; 
+    font-size: 1.5rem; 
+    color: #fff; 
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.close-btn {
+    color: var(--accent);
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* AI Tahlil qutisi */
+.ai-box {
+    background: rgba(0, 255, 0, 0.05); 
+    border-left: 3px solid var(--accent);
+    padding: 15px; 
+    margin: 20px 0; 
+    font-size: 0.95rem; 
+    color: var(--accent);
+    font-style: italic;
+}
+
+.full-content-body p { 
+    line-height: 1.8; 
+    color: #cecece; 
+    margin-bottom: 20px; 
+    font-size: 1.1rem; 
+}
+
+/* Scrollbar stili (Neon) */
+.modal-content::-webkit-scrollbar { width: 6px; }
+.modal-content::-webkit-scrollbar-track { background: #000; }
+.modal-content::-webkit-scrollbar-thumb { 
+    background: var(--accent); 
+    border-radius: 10px; 
+}
+
+/* Loader */
+.loader {
+    color: var(--accent);
+    text-align: center;
+    padding: 50px;
+    font-family: monospace;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+>>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe

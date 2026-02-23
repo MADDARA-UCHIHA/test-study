@@ -1,6 +1,7 @@
 import time
 import re
 from collections import defaultdict
+<<<<<<< HEAD
 from flask import request, abort
 
 # --------------------
@@ -50,11 +51,65 @@ def clean_input(data):
 
 def _key_for_login(username: str | None):
     """Login abuse uchun key: username bo'lsa username, bo'lmasa IP."""
+=======
+from typing import Optional, Any
+from flask import request, abort
+
+# ================= CONFIG =================
+RATE_LIMIT = 30
+RATE_WINDOW = 60
+EMERGENCY_THRESHOLD = 150
+
+MAX_LOGIN_FAILS = 6
+LOCKOUT_SECONDS = 10 * 60
+
+# ================= STATE (RAM) =================
+ip_requests = defaultdict(list)
+global_stats = {"count": 0, "start_time": time.time()}
+
+login_fails = defaultdict(list)
+login_lock = {}
+
+# ================= PATTERNS =================
+_SQL_PATTERNS = [
+    r"\bSELECT\b", r"\bUNION\b", r"\bDELETE\b", r"\bUPDATE\b",
+    r"\bINSERT\b", r"\bDROP\b", r"OR\s+1\s*=\s*1",
+    r"--", r"/\*", r"\*/"
+]
+
+# ================= HELPERS =================
+def clean_input(data: Any):
+    """Basic SQLi + XSS check (safe, recursive)."""
+    if data is None:
+        return
+
+    if isinstance(data, dict):
+        for v in data.values():
+            clean_input(v)
+        return
+
+    if isinstance(data, list):
+        for v in data:
+            clean_input(v)
+        return
+
+    s = str(data)
+
+    for pattern in _SQL_PATTERNS:
+        if re.search(pattern, s, re.IGNORECASE):
+            print(f"[DLP] SQLi blocked: {s!r}")
+            abort(403)
+
+    return s.replace("<", "&lt;").replace(">", "&gt;")
+
+def _key_for_login(username: Optional[str]):
+>>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
     ip = request.remote_addr or "unknown"
     if username:
         return f"user:{username.lower().strip()}"
     return f"ip:{ip}"
 
+<<<<<<< HEAD
 def register_login_failure(username: str | None = None):
     """
     main.py login xato bo'lganda chaqiradi.
@@ -69,20 +124,38 @@ def register_login_failure(username: str | None = None):
         abort(429)  # Too Many Requests (temporary lock)
 
     # window ichidagi fail'larni qoldiramiz
+=======
+def register_login_failure(username: Optional[str] = None):
+    now = time.time()
+    key = _key_for_login(username)
+
+    lock_until = login_lock.get(key)
+    if lock_until and now < lock_until:
+        abort(429)
+
+>>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
     login_fails[key] = [t for t in login_fails[key] if now - t < LOCKOUT_SECONDS]
     login_fails[key].append(now)
 
     if len(login_fails[key]) >= MAX_LOGIN_FAILS:
         login_lock[key] = now + LOCKOUT_SECONDS
+<<<<<<< HEAD
         print(f"[LOGIN LOCK] {key} locked for {LOCKOUT_SECONDS}s")
         abort(429)
 
 def reset_login_failures(username: str | None = None):
     """Login muvaffaqiyatli bo'lsa tozalash uchun (xohlasang main.py’da chaqirasan)."""
+=======
+        print(f"[LOGIN LOCK] {key} for {LOCKOUT_SECONDS}s")
+        abort(429)
+
+def reset_login_failures(username: Optional[str] = None):
+>>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
     key = _key_for_login(username)
     login_fails.pop(key, None)
     login_lock.pop(key, None)
 
+<<<<<<< HEAD
 # --------------------
 # MAIN SECURITY MIDDLEWARE
 # --------------------
@@ -90,17 +163,30 @@ def security_check():
     """
     Har request boshida chaqiriladi (before_request).
     True qaytsa -> Emergency ON deb hisobla.
+=======
+# ================= MAIN MIDDLEWARE =================
+def security_check():
+    """
+    before_request ichida chaqiriladi.
+    True -> Emergency Mode
+    False -> normal davom etadi
+>>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
     """
     now = time.time()
     ip = request.remote_addr or "unknown"
 
+<<<<<<< HEAD
     # 1) Global traffic monitor
+=======
+    # -------- GLOBAL TRAFFIC --------
+>>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
     if now - global_stats["start_time"] > RATE_WINDOW:
         global_stats["count"] = 0
         global_stats["start_time"] = now
 
     global_stats["count"] += 1
     if global_stats["count"] > EMERGENCY_THRESHOLD:
+<<<<<<< HEAD
         print("[EMERGENCY] High traffic detected!")
         return True
 
@@ -122,5 +208,26 @@ def security_check():
             if isinstance(payload, dict):
                 for k, v in payload.items():
                     clean_input(v)
+=======
+        print("[EMERGENCY] Global traffic spike")
+        return True
+
+    # -------- PER-IP RATE LIMIT --------
+    ip_requests[ip] = [t for t in ip_requests[ip] if now - t < RATE_WINDOW]
+    ip_requests[ip].append(now)
+
+    if len(ip_requests[ip]) > RATE_LIMIT:
+        print(f"[RATE LIMIT] {ip}")
+        abort(429)
+
+    # -------- INPUT SCAN --------
+    if request.method == "POST":
+        for v in request.form.values():
+            clean_input(v)
+
+        if request.is_json:
+            payload = request.get_json(silent=True)
+            clean_input(payload)
+>>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
 
     return False
