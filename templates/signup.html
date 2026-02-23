@@ -1,36 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<<<<<<< HEAD
-   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
-  <title>Sign Up</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
-</head>
-<body>
-  <div class="box">
-    <h2>Sign Up</h2>
-<form method="POST">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="email" name="email" placeholder="Email" required>
-  <input type="password" name="password" placeholder="Password" required>
-  <button>Create account</button>
-</form>
-    <a href="/login">Back to login</a>
-  </div>
-</body>
-</html>
-
-
-
-
-
-=======
     <title>Sign Up | Darkline</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
 </head>
 <body>
     <div class="box">
         <h2>Sign Up</h2>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <form action="/signup" method="POST">
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
@@ -40,4 +17,4 @@
     </div>
 </body>
 </html>
->>>>>>> 96c68e9c0ee2b576c8b1afd6811b2b5591ceb0fe
+
