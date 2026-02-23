@@ -25,14 +25,20 @@
 </head>
 <body>
 
-<header>
-    <h1 style="margin:0; letter-spacing:5px; font-size:22px;">DARKLINE●NEWS</h1>
-    <div style="display:flex; gap:15px; align-items:center;">
-        <span style="font-size:11px; color:#666;">ID: <b style="color:#0f0;">{{ user }}</b> | TIER: <b style="color:#fff;">{{ tier | upper }}</b></span>
-        <button class="btn-neon" onclick="location.href='/logout'" style="border-color:#f03; color:#f03; margin-bottom:0;">LOGOUT</button>
+<header class="flex flex-col md:flex-row items-center justify-between p-4 border-b border-green-500 bg-black/90 sticky top-0 z-50">
+    <h1 class="text-green-500 text-xl font-bold tracking-[0.3em]">DARKLINE ● NEWS</h1>
+    <div class="flex items-center gap-4 mt-3 md:mt-0">
+        <div class="text-right">
+            <p class="text-[9px] text-gray-500 uppercase tracking-tighter">System ID: <span class="text-green-400 font-mono">{{ user }}</span></p>
+            <p class="text-[9px] text-gray-500 uppercase tracking-tighter">Access Level: <span class="text-white font-bold">{{ tier | upper }}</span></p>
+        </div>
+        
+        <button onclick="location.href='/premium'" 
+            class="bg-gradient-to-r from-yellow-600 to-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-sm uppercase italic hover:scale-105 transition-transform shadow-[0_0_15px_rgba(250,204,21,0.4)]">
+            GO PREMIUM
+        </button>
     </div>
 </header>
-
 <main id="grid" class="grid">
     <h3 style="text-align:center; grid-column:1/-1;">FETCHING DATA STREAMS...</h3>
 </main>

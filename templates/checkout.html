@@ -1,98 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>DARKLINE●News</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRYPTO CHECKOUT ● DARKLINE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background:#000; color:#0f0; font-family:'Courier New', monospace; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
-        .checkout-box { border:1px solid #0f0; padding:40px; background:#050505; width:400px; text-align:center; box-shadow:0 0 25px rgba(0,255,0,0.2); position:relative; }
-        .checkout-box::before { content: "DIRECT P2P TRANSFER"; position:absolute; top:-10px; left:20px; background:#000; padding:0 10px; font-size:11px; letter-spacing:1px; }
-        
-        .visa-header { font-size: 22px; margin-bottom: 20px; color: #fff; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px dashed #333; padding-bottom: 15px; }
-        .visa-header i { color: #1a1f71; text-shadow: 0 0 5px #fff; }
-        
-        .instructions { font-size: 13px; color: #aaa; text-align: left; margin-bottom: 25px; line-height: 1.6; background: #111; padding: 15px; border-left: 3px solid #0f0; }
-        .instructions b { color: #0f0; font-size: 15px; }
-        
-        /* Sizning kartangiz chiqib turadigan joy */
-        .card-display { background: #000; border: 1px solid #0f0; padding: 20px; margin: 20px 0; font-size: 22px; letter-spacing: 3px; color: #fff; cursor: pointer; transition: 0.3s; position: relative; }
-        .card-display:hover { background: rgba(0,255,0,0.1); box-shadow: 0 0 15px rgba(0,255,0,0.3); }
-        .card-display span { display: block; font-size: 10px; color: #888; letter-spacing: 1px; margin-bottom: 5px; text-transform: uppercase; }
-        
-        .btn-pay { width:100%; padding:15px; background:#0f0; color:#000; border:none; cursor:pointer; font-weight:bold; letter-spacing:2px; transition: 0.3s;}
-        .btn-pay:hover { background:#fff; box-shadow: 0 0 15px #fff; }
-        
-        #loader { margin-top:20px; font-size:12px; display:none; color:#0f0; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; }
+        .status-box { border: 1px dashed #0f0; background: #050505; box-shadow: 0 0 20px rgba(0, 255, 0, 0.05); }
+        .wallet-box { background: #000; border: 1px solid #1a1a1a; position: relative; }
+        .wallet-box::before { content: "TARGET WALLET"; position: absolute; top: -8px; left: 10px; background: #000; padding: 0 5px; font-size: 10px; color: #666; }
     </style>
 </head>
-<body>
-    <div class="checkout-box">
-        <div class="visa-header">
-            <span>UZUM <small style="font-size:10px; color:#888;">VISA</small></span>
-            <i class="fa-brands fa-cc-visa"></i>
+<body class="flex flex-col items-center justify-center min-h-screen p-6">
+    <div class="max-w-md w-full status-box p-8 text-center">
+        <h2 class="text-2xl font-bold mb-4 uppercase tracking-[5px]">CRYPTO DEPLOYMENT</h2>
+        <p class="text-gray-400 text-xs mb-8 italic">Tanlangan daraja: <span class="text-white font-bold">{{ plan_name | upper }}</span></p>
+        
+        <div class="space-y-6">
+            <div class="p-4 border border-green-500/20 text-[10px] text-left leading-relaxed">
+                <p class="text-green-500 mb-2 font-bold uppercase">Manual Authorization Protocol:</p>
+                <ol class="space-y-2 list-decimal list-inside text-gray-500">
+                    <li>Belgilangan miqdordagi USDT yuboring.</li>
+                    <li>Tarmoq faqat <span class="text-white">TRC20 (Tron)</span> bo'lishi shart.</li>
+                    <li>Tranzaksiya Hash (TXID) kodini quyiga kiriting.</li>
+                </ol>
+            </div>
+
+            <div class="wallet-box p-5 text-left mb-6">
+                <p class="text-gray-500 text-[9px] mb-2 uppercase italic">USDT Address (TRC20):</p>
+                <code class="text-[11px] text-green-400 break-all select-all cursor-pointer" title="Click to copy">
+                    TUy...SIZNING_TRC20_HAMYON_MANZILINGIZ...
+                </code>
+            </div>
+
+            <div class="border-t border-gray-900 pt-6">
+                <p class="text-[10px] text-gray-500 mb-3 uppercase">Enter Transaction Hash (TXID):</p>
+                <input type="text" id="txHash" placeholder="e3b0c44298fc1c149afbf4c8..." 
+                    class="w-full bg-black border border-gray-800 p-3 text-center text-green-500 text-xs outline-none focus:border-green-500 mb-4 tracking-tighter transition-all">
+                
+                <button onclick="verifyTransaction()" class="w-full bg-green-600 text-black py-3 font-bold uppercase text-xs tracking-widest hover:bg-white hover:text-black transition-all">
+                    AUTHORIZE ON BLOCKCHAIN
+                </button>
+            </div>
+            
+            <p id="msg" class="text-[9px] mt-4 uppercase tracking-tighter"></p>
         </div>
-
-        <p style="color:#888; font-size:12px; margin-bottom:5px;">REQUESTED CLEARANCE:</p>
-        <h2 style="color:#fff; margin:0 0 20px 0;">{{ tier | upper }} — ${{ price }}.00</h2>
-
-        <div class="instructions">
-            1. Open your banking app.<br>
-            2. Transfer exactly <b>${{ price }}.00</b> to the Master card below.<br>
-            3. Click "I HAVE TRANSFERRED" to get access.
-        </div>
-
-        <div class="card-display" onclick="copyCard()" title="Click to Copy">
-            <span>TARGET CARD NUMBER:</span>
-            <div id="myCardNumber">4916 9903 4044 4592</div> 
-        </div>
-        <p id="copyMsg" style="color:#0f0; font-size:11px; display:none; margin-top:-10px; margin-bottom:20px;">COPIED TO CLIPBOARD!</p>
-
-        <button class="btn-pay" id="confirmBtn" onclick="verifyTransfer()">I HAVE TRANSFERRED</button>
-        <div id="loader"><i class="fa-solid fa-spinner fa-spin"></i> VERIFYING TRANSACTION...</div>
     </div>
 
     <script>
-        // Karta raqamini bir bosishda nusxalash (Copy) funksiyasi
-        function copyCard() {
-            const card = document.getElementById('myCardNumber').innerText;
-            navigator.clipboard.writeText(card);
-            const msg = document.getElementById('copyMsg');
-            msg.style.display = 'block';
-            setTimeout(() => msg.style.display = 'none', 2000);
-        }
-
-        // To'lovni tasdiqlash
-        async function verifyTransfer() {
-            const btn = document.getElementById('confirmBtn');
-            const loader = document.getElementById('loader');
+        async function verifyTransaction() {
+            const hash = document.getElementById('txHash').value;
+            const msg = document.getElementById('msg');
             
-            btn.disabled = true;
-            btn.style.background = '#333';
-            btn.style.color = '#666';
-            btn.innerText = 'PROCESSING...';
-            loader.style.display = 'block';
+            if(!hash || hash.length < 32) {
+                msg.className = "text-red-500";
+                msg.innerText = "ERROR: INVALID TRANSACTION HASH FORMAT.";
+                return;
+            }
 
-            // Tizim go'yoki bankdan to'lovni tekshiryapti (3 soniya kutadi)
-            setTimeout(async () => {
-                loader.innerHTML = "<i class='fa-solid fa-check'></i> PAYMENT CONFIRMED. UPGRADING TIER...";
+            msg.className = "text-gray-500";
+            msg.innerText = "SCANNING BLOCKCHAIN NODES... PLEASE WAIT.";
+            
+            try {
+                const res = await fetch('/api/activate-key', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': "{{ csrf_token() }}"},
+                    body: JSON.stringify({key: hash}) // TXID ni key sifatida yuboramiz
+                });
                 
-                try {
-                    const res = await fetch('/api/upgrade', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json', 'X-CSRFToken': "{{ csrf_token() }}"},
-                        body: JSON.stringify({tier: "{{ tier }}"})
-                    });
-
-                    if(res.ok) {
-                        setTimeout(() => {
-                            window.location.href = "/";
-                        }, 1500);
-                    }
-                } catch(e) {
-                    loader.innerHTML = "<span style='color:#ff003c;'>ERROR VERIFYING. CONTACT ADMIN.</span>";
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    msg.className = "text-green-500 font-bold";
+                    msg.innerText = "TRANSACTION CONFIRMED. ACCESS LEVEL UPGRADED.";
+                    setTimeout(() => location.href = '/', 2000);
+                } else {
+                    msg.className = "text-red-500";
+                    msg.innerText = "ERROR: " + data.message;
                 }
-            }, 3000);
+            } catch (e) {
+                msg.className = "text-red-500";
+                msg.innerText = "CRITICAL ERROR: CONNECTION TO BLOCKCHAIN LOST.";
+            }
         }
     </script>
 </body>

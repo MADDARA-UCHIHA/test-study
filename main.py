@@ -2,26 +2,34 @@ import os
 import sqlite3
 import requests
 import feedparser
-import google.generativeai as genai
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from functools import wraps
 from flask import Flask, jsonify, render_template, session, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
+from google import genai
 
-# --- INITIALIZATION ---
+# --- 1. SOZLAMALAR ---
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "darkline_master_key_2026_titan")
+app.secret_key = os.environ.get("SECRET_KEY", "darkline_production_2026")
 csrf = CSRFProtect(app)
 
-# --- AI CONFIGURATION ---
-GEMINI_API_KEY = "AIzaSyD_vA-buJCozmyo6P7pquGHBFzvqITNOqM" 
-genai.configure(api_key=GEMINI_API_KEY)
-ai_model = genai.GenerativeModel('gemini-1.5-flash')
+client = genai.Client(api_key="AIzaSyD_vA-buJCozmyo6P7pquGHBFzvqITNOqM")
 
-# --- DATABASE SETUP ---
+# 200 ta ma'lumot uchun manbalar 
+RSS_SOURCES = [
+    "http://feeds.bbci.co.uk/news/technology/rss.xml",
+    "https://www.theverge.com/rss/index.xml",
+    "https://techcrunch.com/feed/",
+    "https://www.wired.com/feed/rss",
+    "https://hackaday.com/blog/feed/",
+    "https://cointelegraph.com/rss"
+]
+WALLET_ADDRESS = "TVJu2skT9L9cvuVhpGDRP63GPWqpp2zqZj"
 DB_PATH = "darkline_v2.db"
 
+# --- 2. MA'LUMOTLAR BAZASI ---
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
@@ -33,136 +41,144 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             username TEXT UNIQUE NOT NULL, 
             password_hash TEXT NOT NULL, 
-            tier TEXT DEFAULT 'Free',
-            terms_accepted INTEGER DEFAULT 0)''')
-        conn.commit()
-
+            tier TEXT DEFAULT 'Free')''')
+        
+        # Xatolarni oldini olish uchun ustunni avtomat qo'shish
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN expires_at TIMESTAMP")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
+            
 init_db()
 
-# --- SECURITY UTILS ---
+# --- 3. XAVFSIZLIK ---
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user' not in session:
-            return redirect(url_for('login'))
+    def dec(*args, **kwargs):
+        if 'user' not in session: return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated_function
+    return dec
 
-# --- NEWS ENGINE ---
-RSS_SOURCES = [
-    "http://feeds.bbci.co.uk/news/technology/rss.xml",
-    "http://feeds.bbci.co.uk/news/world/rss.xml",
-    "http://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
-]
-
-def scrap_full_text(url):
-    """BBC va boshqa manbalardan to'liq matnni ajratib oluvchi Neural Scraper"""
-    try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        res = requests.get(url, headers=headers, timeout=7)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        
-        # Maqola matnini qidirish (BBC va boshqa ko'plab yangilik saytlari uchun)
-        paragraphs = soup.find_all('p')
-        content = "\n\n".join([p.get_text() for p in paragraphs if len(p.get_text()) > 40])
-        
-        return content if len(content) > 100 else "Critical Error: Content encrypted or inaccessible."
-    except:
-        return "Connection lost. Darkline target unreachable."
-
-# --- ROUTES ---
-
+# --- 4. SAHIFALAR ---
 @app.route("/")
 @login_required
 def home():
-    return render_template("index.html", user=session.get('user'), tier=session.get('tier'))
+    with get_db_connection() as conn:
+        user_data = conn.execute("SELECT tier, expires_at FROM users WHERE username = ?", (session['user'],)).fetchone()
+        if user_data and user_data['expires_at']:
+            try:
+                expiry = datetime.strptime(user_data['expires_at'], '%Y-%m-%d %H:%M:%S.%f')
+                if expiry < datetime.now():
+                    conn.execute("UPDATE users SET tier = 'Free', expires_at = NULL WHERE username = ?", (session['user'],))
+                    conn.commit()
+                    session['tier'] = 'Free'
+            except (ValueError, TypeError):
+                pass
+                
+    return render_template("index.html", user=session['user'], tier=session.get('tier', 'Free'))
 
+@app.route("/premium")
+@login_required
+def premium_plans():
+    return render_template("pricing.html", user=session['user'], tier=session['tier'])
+
+# --- 5. TO'LOV VA TIZIM ---
+@app.route("/api/verify-crypto", methods=['POST'])
+@login_required
+def verify_crypto():
+    tx_hash = request.json.get('tx_hash')
+    if not tx_hash: return jsonify({"status": "error", "message": "Hash kod kiritilmadi."})
+
+    try:
+        url = f"https://apilist.tronscan.org/api/transaction-info?hash={tx_hash}"
+        data = requests.get(url).json()
+        
+        if data.get('contractRet') == 'SUCCESS' and WALLET_ADDRESS in str(data):
+            expiry_date = datetime.now() + timedelta(days=30)
+            with get_db_connection() as conn:
+                conn.execute("UPDATE users SET tier = 'Premium', expires_at = ? WHERE username = ?", (expiry_date, session['user']))
+                conn.commit()
+                
+            session['tier'] = 'Premium'
+            return jsonify({"status": "success", "message": "To'lov tasdiqlandi. Premium faollashdi."})
+        else:
+            return jsonify({"status": "error", "message": "To'lov topilmadi."})
+    except:
+        return jsonify({"status": "error", "message": "Tarmoq xatosi."})
+
+# --- 6. MA'LUMOT VA TAHLIL ---
 @app.route("/api/feed")
 @login_required
 def api_feed():
-    articles = []
-    for url in RSS_SOURCES:
-        feed = feedparser.parse(url)
-        for entry in feed.entries[:10]:
-            clean_summary = BeautifulSoup(entry.get('summary', ''), "html.parser").get_text()
-            articles.append({
-                "title": entry.title,
-                "summary": clean_summary[:120] + "...",
-                "image": f"https://picsum.photos/400/250?random={hash(entry.title)}",
-                "full_link": entry.link
-            })
-    return jsonify({"articles": articles, "tier": session.get('tier')})
+    news_list = []
+    for src in RSS_SOURCES:
+        try:
+            feed = feedparser.parse(src)
+            for entry in feed.entries:
+                if len(news_list) >= 200: break
+                
+                img = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=600&auto=format&fit=crop"
+                if 'media_thumbnail' in entry and entry.media_thumbnail: img = entry.media_thumbnail[0]['url']
+                elif 'media_content' in entry and entry.media_content: img = entry.media_content[0]['url']
+                
+                news_list.append({"title": entry.title, "full_link": entry.link, "image": img})
+        except: pass
+        if len(news_list) >= 200: break
+        
+    return jsonify({"articles": news_list})
 
 @app.route("/api/full-intel", methods=['POST'])
 @login_required
-def full_intel():
-    """To'liq matnni olish uchun yangi endpoint"""
-    data = request.json
-    url = data.get('url')
-    if not url:
-        return jsonify({"error": "No target URL provided."}), 400
-    
-    intel = scrap_full_text(url)
-    return jsonify({"content": intel})
-
-@app.route("/api/deep-analyze", methods=['POST'])
-@login_required
-def deep_analyze():
+def api_full_intel():
     tier = session.get('tier', 'Free')
-    if tier not in ['Pro', 'Ultimate']:
-        return jsonify({"error": "DARKLINE PRO/ULTIMATE CLEARANCE REQUIRED."}), 403
-    
-    data = request.json
-    full_text = scrap_full_text(data.get('url'))
-    
-    prompt = f"IDENTITY: Gemini Darkline Core. MANDATE: Analyze for cyber-risks and strategy. Master, here is the intel: {full_text}"
+    url = request.json.get('url')
     
     try:
-        response = ai_model.generate_content(prompt)
-        return jsonify({"analysis": response.text.strip()})
-    except:
-        return jsonify({"error": "Satellite link unstable."}), 500
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        resp = requests.get(url, headers=headers)
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        full_text = " ".join([p.get_text() for p in soup.find_all('p')[:15]])
+        
+        if tier == 'Premium':
+            prompt = f"Quyidagi matnni qisqa va aniq faktlarga asoslanib tahlil qilib ber: {full_text}"
+            ai_resp = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            content = f"--- ASOSIY MATN ---\n{full_text}\n\n--- TAHLIL ---\n{ai_resp.text}"
+        else:
+            content = f"--- ASOSIY MATN ---\n{full_text}\n\n[ Tahlilni ko'rish uchun Premium obuna talab etiladi ]"
+            
+        return jsonify({"content": content})
+    except: 
+        return jsonify({"content": "Ma'lumotni olishda xato yuz berdi."}), 500
 
-# --- AUTH SYSTEM (CSRF EXEMPTED FOR FAST LOGIN) ---
+# --- 7. AVTORIZATSIYA ---
+@app.route("/signup", methods=['GET', 'POST'])
+@csrf.exempt
+def signup():
+    if request.method == 'POST':
+        u, p = request.form.get('email'), request.form.get('password')
+        with get_db_connection() as conn:
+            conn.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (u, generate_password_hash(p)))
+            conn.commit()
+        return redirect(url_for('login'))
+    return render_template("signup.html")
 
 @app.route("/login", methods=['GET', 'POST'])
 @csrf.exempt
 def login():
     if request.method == 'POST':
-        user_input = request.form.get('email')
-        pwd = request.form.get('password')
+        u, p = request.form.get('email'), request.form.get('password')
         with get_db_connection() as conn:
-            user = conn.execute("SELECT * FROM users WHERE username = ?", (user_input,)).fetchone()
-        if user and check_password_hash(user['password_hash'], pwd):
+            user = conn.execute("SELECT * FROM users WHERE username = ?", (u,)).fetchone()
+        if user and check_password_hash(user['password_hash'], p):
             session.update({'user': user['username'], 'tier': user['tier']})
             return redirect(url_for('home'))
-        return "Invalid Credentials", 401
     return render_template("login.html")
-
-@app.route("/signup", methods=['GET', 'POST'])
-@csrf.exempt
-def signup():
-    if request.method == 'POST':
-        user_input = request.form.get('email')
-        pwd = request.form.get('password')
-        hashed = generate_password_hash(pwd)
-        try:
-            with get_db_connection() as conn:
-                conn.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (user_input, hashed))
-                conn.commit()
-            session.update({'user': user_input, 'tier': 'Free'})
-            return redirect(url_for('home'))
-        except:
-            return "User already exists", 409
-    return render_template("signup.html")
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# --- SERVER RUN ---
 if __name__ == "__main__":
-    from waitress import serve
-    print("DARKLINE TITAN CORE ONLINE ON PORT 8080")
-    serve(app, host="0.0.0.0", port=8080)
+    app.run(host='0.0.0.0', port=80, debug=True)

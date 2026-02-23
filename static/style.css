@@ -128,3 +128,47 @@ button:hover { box-shadow: 0 0 15px var(--accent); }
     .nav-links { display: none; } /* Mobil uchun ixchamroq qilish mumkin */
     #grid { grid-template-columns: 1fr; }
 }
+/* Header Mobile Fix */
+header { 
+    border-bottom: 2px solid #0f0; 
+    padding: 10px 15px; /* Paddingni kamaytirdik */
+    display: flex; 
+    flex-wrap: wrap; /* Elementlar sig'masa pastga tushadi */
+    justify-content: space-between; 
+    align-items: center; 
+    background: rgba(0,0,0,0.9); 
+    position: sticky; 
+    top: 0; 
+    z-index: 100; 
+}
+
+/* Mobile-da elementlarni tartibga solish */
+@media (max-width: 600px) {
+    header {
+        flex-direction: column; /* Telefonda ustun shakliga o'tadi */
+        gap: 10px;
+        text-align: center;
+    }
+    
+    header h1 {
+        font-size: 18px !important; /* Logotipni kichraytiramiz */
+        letter-spacing: 2px !important;
+    }
+
+    header div {
+        width: 100%;
+        justify-content: center;
+        flex-direction: column; /* ID va Logout ustma-ust tushadi */
+        gap: 5px !important;
+    }
+    
+    .btn-neon {
+        width: 100%; /* Logout tugmasi telefonda keng bo'ladi */
+    }
+    
+    .intel-card {
+        width: 95%;
+        margin: 2% auto;
+        padding: 15px;
+    }
+}
