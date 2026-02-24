@@ -1,2 +1,0 @@
-plan TEXT DEFAULT 'free',
-plan_until DATETIME
