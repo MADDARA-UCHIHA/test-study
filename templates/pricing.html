@@ -16,6 +16,10 @@
     <h1 class="text-3xl font-bold tracking-[10px] text-center mb-2 shadow-green-500/50">UPGRADE</h1>
     <p class="text-gray-600 text-xs mb-10">SELECT YOUR NEURAL CLEARANCE LEVEL</p>
 
+    <div class="bg-red-900/30 border border-red-500 text-red-400 p-3 mb-8 w-full max-w-2xl text-center text-xs tracking-widest animate-pulse">
+        WARNING: CHECKOUT VAQTIDA AYNAN TIZIMDAGI EMAIL MANZILINGIZNI (<span class="text-white font-bold">{{ user }}</span>) KIRITING. AKS HOLDA DARAJA YANGILANMAYDI!
+    </div>
+
     <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl justify-center">
         <div class="cyber-card p-8 w-full md:w-1/2 flex flex-col relative overflow-hidden">
             <h2 class="text-xl font-bold text-white mb-4 italic">PRO LEVEL</h2>
@@ -25,8 +29,12 @@
                 <li>► Global Asset Tracking</li>
                 <li>► Unlimited Intelligence</li>
             </ul>
-            <a href="https://t.me/ryuzen_admin" target="_blank" class="bg-green-500 text-black w-full font-bold py-3 text-center hover:bg-white transition-all block">
-                PAY VIA TELEGRAM (MANUAL)
+            
+            <a href="SENING_SHOPIFY_PRO_LINKING" target="_blank" class="bg-green-500 text-black w-full font-bold py-3 text-center hover:bg-white transition-all block">
+                PAY VIA SHOPIFY
+            </a>
+            <a href="https://t.me/ryuzen_admin" target="_blank" class="text-gray-500 hover:text-green-500 text-center text-[10px] mt-4 block transition-colors">
+                MANUAL TELEGRAM PAYMENT
             </a>
         </div>
 
@@ -40,18 +48,22 @@
                 <li>► Master-Level AI Insights</li>
             </ul>
             
-            <button onclick="document.getElementById('crypto-box').style.display='block'" class="bg-white text-black w-full font-bold py-3 text-center hover:bg-green-500 transition-all">
-                INITIALIZE ULTIMATE
+            <a href="SENING_SHOPIFY_ULTIMATE_LINKING" target="_blank" class="bg-white text-black w-full font-bold py-3 text-center hover:bg-green-500 transition-all block mb-3">
+                PAY VIA SHOPIFY
+            </a>
+
+            <button onclick="document.getElementById('crypto-box').style.display='block'" class="bg-transparent border border-green-500 text-green-500 w-full font-bold py-2 text-center hover:bg-green-500 hover:text-black transition-all">
+                OR INITIALIZE CRYPTO
             </button>
 
             <div id="crypto-box" style="display:none; margin-top:20px; padding:15px; border:1px dashed #0f0; background:#000;">
                 <p class="text-[10px] text-gray-400 mb-2">1. USDT (TRC20) yuboring:</p>
                 <code class="text-[11px] bg-gray-900 p-2 block text-green-400 mb-3 break-all text-center">TVJu2skT9L9cvuVhpGDRP63GPWqpp2zqZj</code>
                 
-                <p class="text-[10px] text-gray-400 mb-2">2. Transaction Hash (TxID) ni kiriting:</p>
-                <input type="text" id="tx_hash_input" class="w-full bg-black border border-green-500 text-green-500 p-2 text-xs mb-3 text-center" placeholder="Masalan: 8a5f...c9b1">
+                <p class="text-[10px] text-gray-400 mb-2">2. Transaction Hash (TxID):</p>
+                <input type="text" id="tx_hash_input" class="w-full bg-black border border-green-500 text-green-500 p-2 text-xs mb-3 text-center" placeholder="8a5f...c9b1">
                 
-                <button onclick="verifyHash()" class="bg-green-500 text-black font-bold py-2 w-full text-xs hover:bg-white transition-all">VERIFY PAYMENT</button>
+                <button onclick="verifyHash()" class="bg-green-500 text-black font-bold py-2 w-full text-xs hover:bg-white transition-all">VERIFY CRYPTO</button>
                 <p id="verify-msg" class="text-[10px] mt-2 text-yellow-500 font-bold text-center"></p>
             </div>
         </div>
@@ -61,10 +73,8 @@
         async function verifyHash() {
             const hash = document.getElementById('tx_hash_input').value;
             const msgBox = document.getElementById('verify-msg');
-            
             if(!hash) { msgBox.innerText = "Hash kodni kiriting!"; return; }
             msgBox.innerText = "DECRYPTING BLOCKCHAIN...";
-
             try {
                 const res = await fetch('/api/verify-crypto', {
                     method: 'POST',
@@ -72,7 +82,6 @@
                     body: JSON.stringify({ tx_hash: hash })
                 });
                 const data = await res.json();
-                
                 if(data.status === 'success') {
                     msgBox.style.color = '#0f0';
                     msgBox.innerText = data.message;
@@ -81,9 +90,7 @@
                     msgBox.style.color = 'red';
                     msgBox.innerText = data.message;
                 }
-            } catch(e) {
-                msgBox.innerText = "SERVER OFFLINE.";
-            }
+            } catch(e) { msgBox.innerText = "SERVER OFFLINE."; }
         }
     </script>
 </body>

@@ -4,60 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DARKLINE ● NEWS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
     <style>
         body { background:#000; color:#0f0; font-family:'Courier New', monospace; margin:0; }
-        header { border-bottom:2px solid #0f0; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.9); position:sticky; top:0; z-index:100; }
         
         /* Full Read Card (Modal) */
         #fullReadModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:1000; }
         .intel-card { width:90%; max-width:850px; margin:5% auto; background:#050505; border:1px solid #0f0; padding:30px; color:#0f0; box-shadow:0 0 25px #0f0; max-height:85vh; overflow-y:auto; position: relative; }
         
-        .btn-neon { background:none; border:1px solid #0f0; color:#0f0; padding:10px 20px; cursor:pointer; font-weight:bold; transition:0.3s; margin-bottom: 15px; }
+        .btn-neon { background:none; border:1px solid #0f0; color:#0f0; padding:10px 20px; cursor:pointer; font-weight:bold; transition:0.3s; margin-bottom: 15px; width: 100%;}
         .btn-neon:hover { background:#0f0; color:#000; box-shadow:0 0 15px #0f0; }
-        .close-icon { position: absolute; top: 15px; right: 20px; font-size: 30px; color: #f03; cursor: pointer; border: none; background: none; }
+        .close-icon { position: absolute; top: 15px; right: 20px; font-size: 30px; color: #f03; cursor: pointer; border: none; background: none; transition: 0.3s; }
+        .close-icon:hover { text-shadow: 0 0 15px #f03; }
         
-        .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:25px; padding:30px; }
-        .card { border:1px solid #111; background:#050505; padding: 15px; display:flex; flex-direction:column; }
-        .card-img { width:100%; height:180px; object-fit:cover; border-bottom:1px solid #0f0; }
+        .grid-container { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:25px; padding:30px; }
+        .card { border:1px solid #111; background:#050505; padding: 15px; display:flex; flex-direction:column; transition: 0.3s;}
+        .card:hover { border-color: #0f0; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); }
+        .card-img { width:100%; height:180px; object-fit:cover; border-bottom:1px solid #0f0; margin-bottom: 15px;}
     </style>
 </head>
 <body>
 
-<header class="flex flex-col md:flex-row items-center justify-between p-4 border-b border-green-500 bg-black/90 sticky top-0 z-50">
-    <h1 class="text-green-500 text-xl font-bold tracking-[0.3em]">DARKLINE ● NEWS</h1>
-    <div class="flex items-center gap-4 mt-3 md:mt-0">
+<header class="flex flex-col md:flex-row items-center justify-between p-4 border-b-2 border-green-500 bg-black/95 sticky top-0 z-50">
+    <h1 class="text-green-500 text-2xl font-bold tracking-[0.3em] ml-4">DARKLINE ● NEWS</h1>
+    
+    <div class="flex items-center gap-6 mr-4 mt-3 md:mt-0">
         <div class="text-right">
-            <p class="text-[9px] text-gray-500 uppercase tracking-tighter">System ID: <span class="text-green-400 font-mono">{{ user }}</span></p>
-            <p class="text-[9px] text-gray-500 uppercase tracking-tighter">Access Level: <span class="text-white font-bold">{{ tier | upper }}</span></p>
+            <p class="text-xs text-green-700 uppercase tracking-tighter">System ID: <span class="text-green-400 font-mono">{{ user }}</span></p>
+            <p class="text-xs text-green-700 uppercase tracking-tighter">Access Level: <span class="text-white font-bold">{{ tier | upper }}</span></p>
         </div>
         
-        <button onclick="location.href='/premium'" 
-            class="bg-gradient-to-r from-yellow-600 to-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-sm uppercase italic hover:scale-105 transition-transform shadow-[0_0_15px_rgba(250,204,21,0.4)]">
+        <a href="{{ url_for('pricing') }}" 
+           class="inline-block bg-gradient-to-r from-yellow-600 to-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-sm uppercase italic hover:scale-105 transition-transform shadow-[0_0_15px_rgba(250,204,21,0.4)] text-center no-underline cursor-pointer">
             GO PREMIUM
-        </button>
+        </a>
+        
+        <a href="{{ url_for('logout') }}" class="text-red-500 hover:text-red-400 text-sm font-bold border border-red-500 px-3 py-1 rounded transition-colors hover:bg-red-900/30">
+            <i class="fa-solid fa-power-off"></i>
+        </a>
     </div>
 </header>
-<main id="grid" class="grid">
-    <h3 style="text-align:center; grid-column:1/-1;">FETCHING DATA STREAMS...</h3>
+
+<main id="grid" class="grid-container">
+    <h3 style="text-align:center; grid-column:1/-1; margin-top: 50px;" class="animate-pulse text-xl">FETCHING DATA STREAMS...</h3>
 </main>
 
 <div id="fullReadModal">
     <div class="intel-card">
         <button class="close-icon" onclick="closeIntel()">&times;</button>
-        <h2 id="mTitle" style="border-bottom:1px solid #0f0; padding-bottom:10px; margin-top: 0;">NEURAL INTERFACE</h2>
+        <h2 id="mTitle" style="border-bottom:1px solid #0f0; padding-bottom:15px; margin-top: 0; font-size: 1.5rem; color: #fff;">NEURAL INTERFACE</h2>
         
-        <div style="padding: 15px 0; border-bottom: 1px dashed #1a1a1a; margin-bottom: 15px;">
+        <div style="padding: 15px 0; border-bottom: 1px dashed #1a1a1a; margin-bottom: 20px;">
             <button class="btn-neon" id="speakBtn" style="margin-bottom: 0;">
-                <i class="fa-solid fa-volume-high"></i> LISTEN INTEL (AI VOICE)
+                <i class="fa-solid fa-volume-high mr-2"></i> LISTEN INTEL (AI VOICE)
             </button>
         </div>
 
-        <div id="mBody" style="line-height:1.7; font-size: 1.1rem; white-space: pre-wrap;">>> AWAITING INTEL...</div>
+        <div id="mBody" style="line-height:1.8; font-size: 1.05rem; white-space: pre-wrap; color: #ccc;">>> AWAITING INTEL...</div>
         
-        <div style="display:flex; gap:15px; border-top: 1px solid #1a1a1a; padding-top: 15px; margin-top: 20px;">
-            <button class="btn-neon" onclick="closeIntel()" style="margin-bottom: 0;">DISMISS</button>
+        <div style="display:flex; justify-content: flex-end; border-top: 1px solid #1a1a1a; padding-top: 20px; margin-top: 20px;">
+            <button class="btn-neon" onclick="closeIntel()" style="width: auto; background: #220000; border-color: #f00; color: #f00;">DISMISS</button>
         </div>
     </div>
 </div>
@@ -70,14 +78,20 @@
         try {
             const res = await fetch('/api/feed');
             const data = await res.json();
+            
+            if (!data.articles || data.articles.length === 0) {
+                grid.innerHTML = '<h3 style="text-align:center; grid-column:1/-1; color:#aa0000;">NO DATA IN CACHE. RUN /api/update-cache</h3>';
+                return;
+            }
+
             grid.innerHTML = data.articles.map(a => `
                 <div class="card">
-                    <img src="${a.image}" class="card-img">
-                    <h3 style="font-size: 16px; margin: 15px 0; color: #fff;">${a.title}</h3>
-                    <button class="btn-neon" onclick="readFullIntel('${a.full_link}', '${a.title.replace(/'/g, "\\'")}')">READ FULL</button>
+                    <img src="${a.image || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600'}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600'">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #fff; flex-grow: 1;">${a.title}</h3>
+                    <button class="btn-neon mt-auto" onclick="readFullIntel('${a.link}', '${a.title.replace(/'/g, "\\'")}')">READ FULL</button>
                 </div>
             `).join('');
-        } catch (e) { grid.innerHTML = "!! SYSTEM OFFLINE !!"; }
+        } catch (e) { grid.innerHTML = "<h3 style='text-align:center; grid-column:1/-1; color:red;'>!! SYSTEM OFFLINE !!</h3>"; }
     }
 
     async function readFullIntel(url, title) {
@@ -85,12 +99,12 @@
         const body = document.getElementById('mBody');
         document.getElementById('mTitle').innerText = title;
         modal.style.display = 'block';
-        body.innerHTML = ">> DECRYPTING FULL INTEL FROM SOURCE...";
+        body.innerHTML = "<span class='animate-pulse text-yellow-500'>>> DECRYPTING FULL INTEL FROM SOURCE...</span>";
 
         try {
             const res = await fetch('/api/full-intel', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-CSRFToken': "{{ csrf_token() }}"},
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'},
                 body: JSON.stringify({url: url})
             });
             const data = await res.json();
@@ -98,12 +112,13 @@
             body.innerHTML = data.content;
             
             document.getElementById('speakBtn').onclick = () => speakIntel(activeIntel);
-        } catch (e) { body.innerHTML = "!! DATA EXTRACTION FAILED !!"; }
+        } catch (e) { body.innerHTML = "<span style='color:red;'>!! DATA EXTRACTION FAILED !!</span>"; }
     }
 
     function speakIntel(text) {
         window.speechSynthesis.cancel();
-        const speech = new SpeechSynthesisUtterance(text);
+        const cleanText = text.replace(/[*_#]/g, '');
+        const speech = new SpeechSynthesisUtterance(cleanText);
         speech.lang = 'en-US';
         speech.rate = 0.95;
         window.speechSynthesis.speak(speech);
